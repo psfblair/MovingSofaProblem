@@ -16,16 +16,12 @@ Before opening this project in Unity:
 
       `git submodule add https://github.com/Microsoft/MRDesignLabs_Unity_Tools.git ./MRDesignLabsUnityTools`
 
-      You may need to make the following tweak for something that is broken in
-      the MR Design Tools at the time of this writing:
+      If you need to make tweaks for something that is broken in the MR Design
+      Tools, I suggest doing the following (and submitting a pull request):
 
 ```bash
       cd Assets/MRDesignLabsUnityTools
       git checkout -b minor_tweaks
-
-      # Now in  HUX/Editor/StartupChecksWindow.cs
-      # comment out the two lines that read
-      # HUXEditorUtils.Header("Fonts Missing");
 ```
 
   3. HoloToolkit 1.5.7.0 is already in this repository, so you shouldn't need
