@@ -269,6 +269,17 @@ Prefab:
       propertyPath: RecognizableGesures
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 114295064799608358, guid: 2effafb42a9bcdd4aafef7457b6efe67,
+        type: 2}
+      propertyPath: BoundingBoxPrefab
+      value: 
+      objectReference: {fileID: 160298, guid: 71288894e9fbd18498829c9be2d9b3bd, type: 2}
+    - target: {fileID: 114295064799608358, guid: 2effafb42a9bcdd4aafef7457b6efe67,
+        type: 2}
+      propertyPath: AppBarPrefab
+      value: 
+      objectReference: {fileID: 1275815092924048, guid: 8bb0f9f606fb5b448922049f74bf0024,
+        type: 2}
     m_RemovedComponents:
     - {fileID: 11416938, guid: 2effafb42a9bcdd4aafef7457b6efe67, type: 2}
   m_ParentPrefab: {fileID: 100100000, guid: 2effafb42a9bcdd4aafef7457b6efe67, type: 2}
