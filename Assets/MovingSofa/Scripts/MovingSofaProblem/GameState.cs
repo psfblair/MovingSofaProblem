@@ -5,6 +5,7 @@ using System.Text;
 using UnityEngine;
 using HoloToolkit.Unity;
 using HUX.Interaction;
+using Functional.Option;
 
 namespace MovingSofaProblem
 {
@@ -13,6 +14,7 @@ namespace MovingSofaProblem
     , Measuring
     , Following
     , StoppedFollowing
+    , PathSimplified
     , RouteInitialized
     , SolutionFound
     , WaitingToReplay
@@ -32,7 +34,8 @@ namespace MovingSofaProblem
 
             this.InitialPath = new PathHolder();
             this.PathToReplay = new PathHolder();
-            this.CurrentPathSegment = 0;
+            this.CurrentPathStep = Option.None;
+            this.SegmentReplayStartTime = 0;
             this.Measure = new GameObject();
             this.statusSpeaker = statusSpeaker;
         }
@@ -44,28 +47,36 @@ namespace MovingSofaProblem
 
             this.InitialPath = priorState.InitialPath;
             this.PathToReplay = priorState.PathToReplay;
-            this.CurrentPathSegment = priorState.CurrentPathSegment;
+            this.CurrentPathStep = priorState.CurrentPathStep;
+            this.SegmentReplayStartTime = priorState.SegmentReplayStartTime;
             this.Measure = priorState.Measure;
             this.statusSpeaker = priorState.statusSpeaker;
         }
 
-        public GameMode   Mode         { get; protected set; }
-        public PathHolder InitialPath  { get; protected set; }
-        public PathHolder PathToReplay { get; protected set; }
-        public int CurrentPathSegment  { get; protected set; }
-        public GameObject Measure      { get; protected set; }
+        public GameMode   Mode                  { get; protected set; }
+        public PathHolder InitialPath           { get; protected set; }
+        public Option<PathStep> CurrentPathStep { get; protected set; }
+        public float SegmentReplayStartTime     { get; protected set; }
+        public GameObject Measure               { get; protected set; }
+
 
         public abstract string SayableStateDescription { get;  }
         public abstract string SayableStatus { get; }
 
-        public Func<GameState, GameState> SpeakState = state =>
+        protected PathHolder PathToReplay { get; set; }
+        protected static Option<PathStep> FirstStep(GameState state)
+        {
+            return PathHolder.FirstStep(state.PathToReplay);
+        }
+
+        static public Func<GameState, GameState> SpeakState = state =>
         {
             state.statusSpeaker(state.SayableStateDescription);
             return state;
         };
 
         // Currying in C#!
-        public Func<string, Func<GameState, GameState>> Say = 
+        static public Func<string, Func<GameState, GameState>> Say = 
             somethingToSay => state => { state.statusSpeaker(somethingToSay); return state; };
     }
 
@@ -81,13 +92,16 @@ namespace MovingSofaProblem
     public sealed class Measuring : GameState
     {
         override public string SayableStateDescription { get { return "Measuring object."; } }
-        override public string SayableStatus { get { return "I am measuring."; } }
+        override public string SayableStatus { get { return "I am measuring the object you select."; } }
 
-        public Measuring(GameState priorState): base(GameMode.Measuring, priorState) {}
-
-        public Measuring(GameState priorState, GameObject newMeasure) : base(GameMode.Measuring, priorState)
+        private Measuring(GameState priorState, GameObject newMeasure) : base(GameMode.Measuring, priorState)
         {
             this.Measure = newMeasure;
+        }
+
+        internal static Measuring StartMeasuring(GameState priorState, GameObject newMeasure)
+        {
+            return new Measuring(priorState, newMeasure);
         }
     }
 
@@ -96,10 +110,15 @@ namespace MovingSofaProblem
         override public string SayableStateDescription { get { return "I'm following you."; } }
         override public string SayableStatus { get { return "I am following you."; } }
 
-        public Following(GameState priorState) : base(GameMode.Following, priorState)
+        private Following(GameState priorState) : base(GameMode.Following, priorState)
         {
             this.InitialPath = new PathHolder();
             this.PathToReplay = new PathHolder();
+        }
+
+        internal static Following StartFollowing(GameState priorState)
+        {
+            return new Following(priorState);
         }
     }
 
@@ -108,8 +127,38 @@ namespace MovingSofaProblem
         override public string SayableStateDescription { get { return "Simplifying the route."; } }
         override public string SayableStatus { get { return "I have stopped following you and am simplifying the route."; } }
 
-        public StoppedFollowing(GameState priorState) : base(GameMode.StoppedFollowing, priorState)
+        private StoppedFollowing(GameState priorState) : base(GameMode.StoppedFollowing, priorState)
         {
+        }
+
+        internal static GameState HasStoppedFollowing(GameState priorState)
+        {
+            if (priorState.Mode == GameMode.Following)
+            {
+                return new StoppedFollowing(priorState);
+            }
+            else
+            { 
+                return priorState;
+            }
+        }
+    }
+
+    public sealed class PathSimplified : GameState
+    {
+        override public string SayableStateDescription { get { return "Route simplified."; } }
+        override public string SayableStatus { get { return "I have simplified the route."; } }
+
+        private PathSimplified(GameState priorState, PathHolder simplifiedPath) : base(GameMode.PathSimplified, priorState)
+        {
+            this.InitialPath = simplifiedPath;
+            this.PathToReplay = simplifiedPath;
+        }
+
+        internal static PathSimplified HasSimplifiedPath(GameState priorState)
+        {
+            var simplifiedPath = PathHolder.Simplify(priorState.InitialPath);
+            return new PathSimplified(priorState, simplifiedPath);
         }
     }
 
@@ -118,9 +167,22 @@ namespace MovingSofaProblem
         override public string SayableStateDescription { get { return "Figuring out a solution."; } }
         override public string SayableStatus { get { return "I am figuring out a solution."; } }
 
-        public RouteInitialized(GameState priorState) : base(GameMode.RouteInitialized, priorState)
+        private RouteInitialized(GameState priorState) : base(GameMode.RouteInitialized, priorState)
         {
             this.PathToReplay = this.InitialPath;
+        }
+
+        internal static GameState HasInitializedRoute(GameState priorState)
+        {
+            if (priorState.Mode == GameMode.StoppedFollowing)
+            {
+                // Were already doing something else, so ignore the call to RouteInitialized.
+                return new RouteInitialized(priorState);
+            }
+            else
+            {
+                return priorState;
+            }
         }
     }
 
@@ -129,17 +191,36 @@ namespace MovingSofaProblem
         override public string SayableStateDescription { get { return "Finished figuring out a solution.  Say 'replay solution' to see it."; } }
         override public string SayableStatus { get { return "I have figured out a solution. Say 'replay solution' to see it."; } }
 
-        public SolutionFound(GameState priorState) : base(GameMode.SolutionFound, priorState) {}
+        private SolutionFound(GameState priorState) : base(GameMode.SolutionFound, priorState) {}
+
+        internal static SolutionFound HasFoundSolution(GameState priorState)
+        {
+            return new SolutionFound(priorState);
+        }
     }
 
     public sealed class WaitingToReplay : GameState
     {
         override public string SayableStateDescription { get { return "Replaying the solution. Say 'next' to replay the next step."; } }
-        override public string SayableStatus { get { return "I am starting to replay the solution. Say 'next' to replay the next step."; } }
+        override public string SayableStatus { get { return "I am ready to replay the solution. Say 'next' to replay the next step."; } }
 
-        public WaitingToReplay(GameState priorState) : base(GameMode.WaitingToReplay, priorState)
+        private WaitingToReplay(GameState priorState, PathStep firstStep) : base(GameMode.WaitingToReplay, priorState)
         {
-            this.CurrentPathSegment = 0;
+            this.CurrentPathStep = firstStep;
+
+        }
+
+        internal static GameState IsWaitingToReplay(GameState priorState)
+        {
+            PathStep firstStep;
+            if (GameState.FirstStep(priorState).TryGetValue(out firstStep))
+            {
+                return new WaitingToReplay(priorState, firstStep);
+            }
+            else
+            {
+                return priorState;
+            }
         }
     }
 
@@ -148,8 +229,53 @@ namespace MovingSofaProblem
         override public string SayableStateDescription { get { return "Replaying the solution. Say 'next' to replay the next step, 'again' to replay the current step, or 'replay solution' to start over from the beginning."; } }
         override public string SayableStatus { get { return "I am in the middle of replaying the solution. Say 'next' to replay the next step, 'again' to replay the current step, or 'replay solution' to start over from the beginning."; } }
 
-        public Replaying(GameState priorState) : base(GameMode.Replaying, priorState)
+        private Replaying(GameState priorState, PathStep currentStep, float replayStartTime) : base(GameMode.Replaying, priorState)
         {
+            this.CurrentPathStep = currentStep;
+            this.SegmentReplayStartTime = replayStartTime;
+        }
+
+        internal static GameState IsPlayingNextSegment(GameState priorState, float replayStartTime)
+        {
+            if (priorState.Mode != GameMode.WaitingToReplay &&
+                priorState.Mode != GameMode.Replaying)
+            {
+                return priorState;
+            }
+           
+            // Most Performant way of using Option type
+            PathStep pathStep;
+            if (!priorState.CurrentPathStep.TryGetValue(out pathStep))
+            {
+                return priorState;
+            }
+
+            PathStep nextStep;
+            if (PathStep.NextStep(pathStep).TryGetValue(out nextStep))
+            {
+                return new Replaying(priorState, nextStep, replayStartTime);
+            }
+            else
+            {
+                return FinishedReplaying.IsFinishedReplaying(priorState);
+            }
+        }
+
+        static internal GameState IsReplayingCurrentSegment(GameState priorState, float replayStartTime)
+        {
+            if (priorState.Mode == GameMode.WaitingToReplay ||
+                priorState.Mode == GameMode.Replaying ||
+                priorState.Mode == GameMode.FinishedReplaying)
+            {
+                // Most Performant way of using Option type
+                PathStep pathStep;
+                if (priorState.CurrentPathStep.TryGetValue(out pathStep))
+                {
+                    return new Replaying(priorState, pathStep, replayStartTime);
+                }
+            }
+
+            return priorState;
         }
     }
 
@@ -158,8 +284,13 @@ namespace MovingSofaProblem
         override public string SayableStateDescription { get { return "Finished replaying the solution. Say 'replay solution' to replay again from the beginning."; } }
         override public string SayableStatus { get { return "I have finished replaying the solution. Say 'replay solution' to replay again from the beginning."; } }
 
-        public FinishedReplaying(GameState priorState) : base(GameMode.FinishedReplaying, priorState)
+        private FinishedReplaying(GameState priorState) : base(GameMode.FinishedReplaying, priorState)
         {
+        }
+
+        internal static FinishedReplaying IsFinishedReplaying(GameState priorState)
+        {
+            return new FinishedReplaying(priorState);
         }
     }
 

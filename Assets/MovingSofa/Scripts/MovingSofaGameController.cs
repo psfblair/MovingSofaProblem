@@ -42,9 +42,40 @@ public class MovingSofaGameController : MonoBehaviour
                 HandleStateTransition(followingStateTransition);
                 break;
             case GameMode.Replaying:
-                // TODO Replay saved path with segments next, next, next
-                // TODO: If the current breadcrumb position <> end breadcrumb position, translate an increment toward it.
-                // TODO: If the current bradcrumb rotation <> end breadcrumb rotation, rotate an increment toward it.
+                PathStep currentPathStep;
+                if(currentGameState.CurrentPathStep.TryGetValue(out currentPathStep))
+                {
+                    var translationSpeed = 1.0f; // units/sec
+                    var rotationSpeed = 1.0f; // degrees/sec
+                    var distanceTraveled = (Time.time - currentGameState.SegmentReplayStartTime) * translationSpeed;
+                    var rotationTraveled = (Time.time - currentGameState.SegmentReplayStartTime) * rotationSpeed;
+
+                    var distanceToTravel = currentPathStep.PathSegment.TranslationDistance;
+                    var proportionOfTranslationComplete = (distanceToTravel - distanceTraveled) / distanceToTravel;
+                    if (proportionOfTranslationComplete > 1.0) { proportionOfTranslationComplete = 1.0f;  }
+
+                    var angleToRotate = currentPathStep.PathSegment.RotationAngle;
+                    var proportionOfRotationComplete = (angleToRotate - rotationTraveled) / angleToRotate;
+                    if (proportionOfRotationComplete > 1.0) { proportionOfRotationComplete = 1.0f; }
+
+                    // If we haven't covered the entire distance yet
+                    if (proportionOfTranslationComplete <= 1.0 || proportionOfRotationComplete <= 1.0)
+                    {
+                        var measureTransform = currentGameState.Measure.transform;
+                        var currentStartBreadcrumb = currentPathStep.StartNode.Value;
+                        var currentEndBreadcrumb = currentPathStep.EndNode.Value;
+
+                        var initialPosition = currentStartBreadcrumb.Position;
+                        var finalPosition = currentEndBreadcrumb.Position;
+                        measureTransform.position = 
+                            Vector3.Lerp(initialPosition, finalPosition, proportionOfTranslationComplete);
+
+                        var initialRotation = currentStartBreadcrumb.Rotation;
+                        var finalRotation = currentEndBreadcrumb.Rotation;
+                        measureTransform.rotation = 
+                            Quaternion.Lerp(initialRotation, finalRotation, proportionOfRotationComplete);
+                    }
+                }
                 break;
         }
     }
@@ -79,7 +110,7 @@ public class MovingSofaGameController : MonoBehaviour
 
     private void SurfaceMeshesToPlanes_MakePlanesComplete(object source, EventArgs args)
     {
-        var stateTransition = StateTransitions.RouteInitialized(currentGameState
+        var stateTransition = StateTransitions.InitializeRoute(currentGameState
                                                                , WallVertexRemover 
                                                                , WallSurfaceCreator(wallPlane));
         HandleStateTransition(stateTransition);

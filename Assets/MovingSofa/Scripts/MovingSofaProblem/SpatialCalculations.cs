@@ -20,22 +20,21 @@ namespace MovingSofaProblem
 
     public static class SpatialCalculations
     {
-        public static PositionAndRotation OrientationRelativeToOneUnitInFrontOf(Transform transformToBeInFrontOf, Vector3 relativePosition)
+        internal static PositionAndRotation OrientationRelativeToOneUnitInFrontOf(Transform transformToBeInFrontOf, Vector3 relativePosition)
         {
             var forward = new Vector3(transformToBeInFrontOf.forward.x, 0.0f, transformToBeInFrontOf.forward.z);
             var position = transformToBeInFrontOf.position + forward + relativePosition;
+            // TODO? This doesn't seem to keep the rotation happening. Or does it?
             var rotation = Quaternion.Inverse(transformToBeInFrontOf.rotation);
             return new PositionAndRotation(position, rotation);
         }
 
-        public static PositionAndRotation PositionInFrontOf(Vector3 objectExtents, Transform transformToBeInFrontOf)
+        internal static PositionAndRotation PositionInFrontOf(Vector3 objectExtents, Transform transformToBeInFrontOf)
         {
-            float yRelativePosition = -0.4f;
-            float zRelativePosition = -0.5f;
+            const float yRelativePosition = -0.4f;
+            const float zRelativePosition = -0.5f;
             var relativePosition = new Vector3(0.0f, yRelativePosition + objectExtents.y, zRelativePosition + objectExtents.z);
             return OrientationRelativeToOneUnitInFrontOf(transformToBeInFrontOf, relativePosition);
-
-            // TODO: Using smoothing, note each time the game object rotates. This will give us segmentation (?)
         }
     }
 }

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
-using HUX.Interaction;
+using Functional.Option;
 
 namespace MovingSofaProblem
 {
@@ -36,17 +34,15 @@ namespace MovingSofaProblem
                                                     , Transform cameraTransform
                                                     , Func<GameObject, PositionAndRotation, GameObject> measureCreator)
         {
-            var newState = new Measuring(currentState);
-            
             Func<GameState, GameState> createNewMeasure = state =>
             {
                 var newPositionAndRotation = SpatialCalculations.OrientationRelativeToOneUnitInFrontOf(cameraTransform, InitialMeasurePositionRelativeToOneUnitInFrontOfCamera);
                 var newMeasure = measureCreator(state.Measure, newPositionAndRotation);
-                return new Measuring(state, newMeasure);
+                return Measuring.StartMeasuring(state, newMeasure);
             };
             
-            var sideEffects = ToList(createNewMeasure, newState.SpeakState);
-            return new StateTransition(newState, sideEffects);
+            var sideEffects = ToList(createNewMeasure, GameState.SpeakState);
+            return new StateTransition(currentState, sideEffects);
         }
 
 
@@ -56,18 +52,21 @@ namespace MovingSofaProblem
                                                     , Action spatialMappingObserverStarter
                                                     , Func<GameObject, Transform, PositionAndRotation> moveMeasure)
         {
-            var newState = new Following(currentState);
+            var newState = Following.StartFollowing(currentState);
 
-            Func<GameState, GameState> disableBoundingBox          = state => { boundingBoxDisabler();           return state; };
-            Func<GameState, GameState> startSpatialMappingObserver = state => { spatialMappingObserverStarter(); return state; };
-            Func<GameState, GameState> keepMeasureInFrontOfMe = state =>
-            {
-                var newPositionAndRotation = moveMeasure(currentState.Measure, cameraTransform);
-                state.InitialPath.Add(newPositionAndRotation.Position, newPositionAndRotation.Rotation);
-                return state;
-            };
+            Func<GameState, GameState> disableBoundingBox = 
+                state => { boundingBoxDisabler(); return state; };
+            Func<GameState, GameState> startSpatialMappingObserver = 
+                state => { spatialMappingObserverStarter(); return state; };
+            Func<GameState, GameState> keepMeasureInFrontOfMe = 
+                state =>
+                    {
+                        var newPositionAndRotation = moveMeasure(currentState.Measure, cameraTransform);
+                        state.InitialPath.Add(newPositionAndRotation.Position, newPositionAndRotation.Rotation);
+                        return state;
+                    };
 
-            var sideEffects = ToList(disableBoundingBox, startSpatialMappingObserver, keepMeasureInFrontOfMe, newState.SpeakState);
+            var sideEffects = ToList(disableBoundingBox, startSpatialMappingObserver, keepMeasureInFrontOfMe, GameState.SpeakState);
             return new StateTransition(newState, sideEffects);
         }
 
@@ -92,64 +91,127 @@ namespace MovingSofaProblem
                                                    , Action spatialMappingObserverStopper
                                                    , Action planeCreator)
         {
-            if (currentState.Mode != GameMode.Following)
+            var newState = StoppedFollowing.HasStoppedFollowing(currentState);
+            var sideEffects = ToList();
+
+            if (newState.Mode == GameMode.Following)
             {
-                var errorSideEffects = ToList(currentState.Say("I can't stop following you because I'm not following you."));
-                return new StateTransition(currentState, errorSideEffects);
+                // TODO Show spinner as side effect
+                Func<GameState, GameState> stopSpatialMappingObserver = 
+                    state => { spatialMappingObserverStopper(); return state; };
+                Func<GameState, GameState> simplifyPath = 
+                    state => { return PathSimplified.HasSimplifiedPath(currentState); };
+                Func<GameState, GameState> createPlanes = 
+                    state => { planeCreator(); return state; };
+
+                sideEffects = ToList(GameState.SpeakState, stopSpatialMappingObserver, createPlanes);
+            }
+            else
+            {
+                sideEffects = ToList(GameState.Say("I can't stop following you because I'm not following you."));
             }
 
-            var newState = new StoppedFollowing(currentState);
-            // TODO Show spinner as side effect
-            Func<GameState, GameState> stopSpatialMappingObserver = state => { spatialMappingObserverStopper(); return state; };
-            Func<GameState, GameState> createPlanes = state => { planeCreator(); return state; };
-
-            var sideEffects = ToList(newState.SpeakState, stopSpatialMappingObserver, createPlanes);
             return new StateTransition(newState, sideEffects);
         }
 
 
-        public static StateTransition RouteInitialized( GameState currentState
+        public static StateTransition InitializeRoute( GameState currentState
                                                       , Action wallVertexRemover
                                                       , Action wallSurfaceCreator)
         {
-            if (currentState.Mode != GameMode.StoppedFollowing)
+            var newState = RouteInitialized.HasInitializedRoute(currentState);
+            var sideEffects = ToList();
+
+            if (newState.Mode == GameMode.StoppedFollowing)
             {
-                // Were already doing something else, so ignore the call to RouteInitialized.
-                return new StateTransition(currentState, new List<Func<GameState, GameState>>());
+                // TODO Stop spinner as side effect
+                Func<GameState, GameState> removeWallVertices = state => { wallVertexRemover(); return state; };
+                Func<GameState, GameState> createWallSurfaces = state => { wallSurfaceCreator(); return state; };
+
+                // TODO Do AI/search here
+                // Redo the initial path with colliders against the planes, find all the places where it touches
+                // Then try to solve those. Also can't be raised above the person's head too far.
+                // TODO Save path to text asset
+
+                Func<GameState, GameState> transitionToSolutionFound = state =>
+                {
+                    var solutionFoundState = SolutionFound.HasFoundSolution(state);
+                    GameState.SpeakState(solutionFoundState);
+                    return solutionFoundState;
+                };
+
+                sideEffects = ToList(GameState.SpeakState
+                                    , removeWallVertices
+                                    , createWallSurfaces
+                                    , transitionToSolutionFound);
             }
 
-            var newState = new RouteInitialized(currentState);
-
-            // TODO Stop spinner as side effect
-            Func<GameState, GameState> removeWallVertices = state => { wallVertexRemover(); return state; };
-            Func<GameState, GameState> createWallSurfaces = state => { wallSurfaceCreator(); return state; };
-
-            // TODO Do AI/search here
-            // Redo the initial path with colliders against the planes, find all the places where it touches
-            // Then try to solve those. Also can't be raised above the person's head too far.
-            // TODO Save path to text asset
-
-            Func<GameState, GameState> transitionToSolutionFound = state =>
-            {
-                var solutionFoundState = new SolutionFound(state);
-                solutionFoundState.SpeakState(solutionFoundState);
-                return solutionFoundState;
-            };
-
-            var sideEffects = ToList(newState.SpeakState, removeWallVertices, createWallSurfaces, transitionToSolutionFound);
             return new StateTransition(newState, sideEffects);
         }
 
 
         public static StateTransition StartReplaying(GameState currentState)
         {
-            if(currentState.PathToReplay.Count < 2)
+            var newState = WaitingToReplay.IsWaitingToReplay(currentState);
+            var sideEffects = ToList();
+
+            if (newState.Mode == GameMode.WaitingToReplay)
             {
-                var errorSideEffects = ToList(currentState.Say("I can't replay the solution because I have no solution to replay."));
-                return new StateTransition(currentState, errorSideEffects);
+                Func<GameState, GameState> positionMeasureAtStart = state =>
+                {
+                    PathStep firstStep;
+                    if(state.CurrentPathStep.TryGetValue(out firstStep))
+                    {
+                        state.Measure.transform.position = firstStep.StartNode.Value.Position;
+                        state.Measure.transform.rotation = firstStep.StartNode.Value.Rotation;
+                    }
+                    return state;
+                };
+
+                sideEffects = ToList(positionMeasureAtStart, GameState.SpeakState);
             }
-            var newState = new WaitingToReplay(currentState);
-            var sideEffects = ToList(newState.SpeakState);
+            else
+            {
+                sideEffects = ToList(GameState.Say("I can't replay the solution because I have no solution to replay."));
+            }
+
+            return new StateTransition(newState, sideEffects);
+        }
+
+        public static StateTransition PlayNextSegment(GameState currentState, float replayStartTime)
+        {
+            var newState = Replaying.IsPlayingNextSegment(currentState, replayStartTime);
+            var sideEffects = ToList();
+
+            switch(newState.Mode)
+            {
+                case GameMode.Replaying:
+                    break;
+                case GameMode.FinishedReplaying:
+                    sideEffects = ToList(GameState.Say("You're at the end of the path."));
+                    break;
+                default:
+                    sideEffects = ToList(GameState.Say("I can't replay the solution because I have no solution to replay."));
+                    break;
+            }
+            
+            return new StateTransition(newState, sideEffects);
+        }
+
+        public static StateTransition ReplayCurrentSegment(GameState currentState, float replayStartTime)
+        {
+            var newState = Replaying.IsPlayingNextSegment(currentState, replayStartTime);
+            var sideEffects = ToList();
+
+            switch (newState.Mode)
+            {
+                case GameMode.Replaying:
+                    break;
+                default:
+                    sideEffects = ToList(GameState.Say("I can't replay the current step because I currently don't have a step to replay."));
+                    break;
+            }
+
             return new StateTransition(newState, sideEffects);
         }
 
@@ -157,32 +219,8 @@ namespace MovingSofaProblem
         public static List<Func<GameState, GameState>> SayStatus(GameState currentState, string intro)
         {
             var status = intro + " Right now " + currentState.SayableStatus;
-            return ToList(currentState.Say(status));
+            return ToList(GameState.Say(status));
         }
-
-        /*
-            private void PlayNextSegment()
-            {
-                if (pathToReplay.MoveNext())
-                {
-                    startOfCurrentSegment = endOfCurrentSegment;
-                    endOfCurrentSegment = pathToReplay.Current;
-                    currentGameMode = GameMode.Replaying;
-                }
-                else
-                {
-                    textToSpeechManager.SpeakText("You're at the end of the path.");
-                    currentGameMode = GameMode.FinishedReplaying;
-                }
-            }
-
-            private void ReplayCurrentSegment()
-            {
-                // TODO: Reset current position back to startOfCurrentSegment
-                currentGameMode = GameMode.Replaying;
-            }
-        */
-
 
         private static List<Func<GameState, GameState>> ToList(params Func<GameState, GameState>[] sideEffectFunctions)
         {
