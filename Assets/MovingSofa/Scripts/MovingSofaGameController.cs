@@ -17,15 +17,18 @@ public class MovingSofaGameController : MonoBehaviour
 
     private GameState currentGameState;
 
+    private static float replayingTranslationSpeed = 1.0f; // units/sec
+    private static float replayingRotationSpeed = 1.0f; // degrees/sec
+
+
     void Start()
     {
         SurfaceMeshesToPlanes.Instance.MakePlanesComplete += SurfaceMeshesToPlanes_MakePlanesComplete;
 
         boundingBox = GameObject.FindObjectOfType<BoundingBox>();
         textToSpeechManager = GameObject.FindObjectOfType<TextToSpeechManager>();
-        Action<string> StatusSpeaker = status => { textToSpeechManager.SpeakText(status); };
 
-        var stateTransition = StateTransitions.Start(StatusSpeaker);
+        var stateTransition = StateTransitions.Start(StatusSpeaker(textToSpeechManager));
         HandleStateTransition(stateTransition);
     }
 
@@ -34,48 +37,25 @@ public class MovingSofaGameController : MonoBehaviour
         switch (currentGameState.Mode)
         {
             case GameMode.Starting:
-                var startingStateTransition = StateTransitions.StartMeasuring(currentGameState, Camera.main.transform, MeasureCreator(measurePrefab));
+                var startingStateTransition = 
+                    StateTransitions.StartMeasuring(currentGameState
+                                                   , Camera.main.transform
+                                                   , MeasureCreator(measurePrefab));
                 HandleStateTransition(startingStateTransition);
                 break;
             case GameMode.Following:
-                var followingStateTransition = StateTransitions.KeepFollowing(currentGameState, Camera.main.transform, MeasureMover);
+                var followingStateTransition = 
+                    StateTransitions.KeepFollowing(currentGameState, Camera.main.transform, MeasureCarrier);
                 HandleStateTransition(followingStateTransition);
                 break;
             case GameMode.Replaying:
-                PathStep currentPathStep;
-                if(currentGameState.CurrentPathStep.TryGetValue(out currentPathStep))
-                {
-                    var translationSpeed = 1.0f; // units/sec
-                    var rotationSpeed = 1.0f; // degrees/sec
-                    var distanceTraveled = (Time.time - currentGameState.SegmentReplayStartTime) * translationSpeed;
-                    var rotationTraveled = (Time.time - currentGameState.SegmentReplayStartTime) * rotationSpeed;
-
-                    var distanceToTravel = currentPathStep.PathSegment.TranslationDistance;
-                    var proportionOfTranslationComplete = (distanceToTravel - distanceTraveled) / distanceToTravel;
-                    if (proportionOfTranslationComplete > 1.0) { proportionOfTranslationComplete = 1.0f;  }
-
-                    var angleToRotate = currentPathStep.PathSegment.RotationAngle;
-                    var proportionOfRotationComplete = (angleToRotate - rotationTraveled) / angleToRotate;
-                    if (proportionOfRotationComplete > 1.0) { proportionOfRotationComplete = 1.0f; }
-
-                    // If we haven't covered the entire distance yet
-                    if (proportionOfTranslationComplete <= 1.0 || proportionOfRotationComplete <= 1.0)
-                    {
-                        var measureTransform = currentGameState.Measure.transform;
-                        var currentStartBreadcrumb = currentPathStep.StartNode.Value;
-                        var currentEndBreadcrumb = currentPathStep.EndNode.Value;
-
-                        var initialPosition = currentStartBreadcrumb.Position;
-                        var finalPosition = currentEndBreadcrumb.Position;
-                        measureTransform.position = 
-                            Vector3.Lerp(initialPosition, finalPosition, proportionOfTranslationComplete);
-
-                        var initialRotation = currentStartBreadcrumb.Rotation;
-                        var finalRotation = currentEndBreadcrumb.Rotation;
-                        measureTransform.rotation = 
-                            Quaternion.Lerp(initialRotation, finalRotation, proportionOfRotationComplete);
-                    }
-                }
+                var keepReplayingStateTransition =
+                    StateTransitions.KeepReplaying(currentGameState
+                                                  , Time.time
+                                                  , replayingTranslationSpeed
+                                                  , replayingRotationSpeed
+                                                  , MeasureMover);
+                HandleStateTransition(keepReplayingStateTransition);
                 break;
         }
     }
@@ -96,7 +76,7 @@ public class MovingSofaGameController : MonoBehaviour
                                                              , Camera.main.transform
                                                              , BoundingBoxDisabler(boundingBox)
                                                              , SpatialMappingObserverStarter
-                                                             , MeasureMover);
+                                                             , MeasureCarrier);
         HandleStateTransition(stateTransition);
     }
 
@@ -128,7 +108,7 @@ public class MovingSofaGameController : MonoBehaviour
         HandleSideEffects(sideEffects);
     }
 
-#region FUNCTIONS WITH SIDE EFFECTS
+#region SIDE EFFECTS
 
     private void HandleStateTransition(StateTransition stateTransition)
     {
@@ -144,7 +124,12 @@ public class MovingSofaGameController : MonoBehaviour
         }
     }
 
-    private Func<GameObject, Func<GameObject, PositionAndRotation, GameObject>> MeasureCreator = 
+    private static Action<string> StatusSpeaker(TextToSpeechManager textToSpeechManager) 
+    {
+        return status => textToSpeechManager.SpeakText(status);
+    }
+
+    private static Func<GameObject, Func<GameObject, PositionAndRotation, GameObject>> MeasureCreator = 
         measurePrefab => 
             (measure, newPositionAndRotation) =>
                 {
@@ -156,22 +141,27 @@ public class MovingSofaGameController : MonoBehaviour
                     return measure;
                 };
 
-    private Func<GameObject, Transform, PositionAndRotation> MeasureMover = (measure, cameraTransform) =>
+    private static Func<GameObject, PositionAndRotation, PositionAndRotation> MeasureMover = (measure, newPositionAndRotation) =>
     {
-        var measureExtents = measure.GetComponent<Collider>().bounds.extents;
-        var newPositionAndRotation = SpatialCalculations.PositionInFrontOf(measureExtents, cameraTransform);
         measure.transform.position = newPositionAndRotation.Position;
         measure.transform.rotation = newPositionAndRotation.Rotation;
         return newPositionAndRotation;
     };
 
-    private Func<BoundingBox,Action> BoundingBoxDisabler = box => () => box.Target = null;
+    private static Func<GameObject, Transform, PositionAndRotation> MeasureCarrier = (measure, cameraTransform) =>
+    {
+        var measureExtents = measure.GetComponent<Collider>().bounds.extents;
+        var newPositionAndRotation = SpatialCalculations.PositionInFrontOf(measureExtents, cameraTransform);
+        return MeasureMover(measure, newPositionAndRotation);
+    };
 
-    private Action SpatialMappingObserverStarter = () => SpatialMappingManager.Instance.StartObserver();
+    private static Func<BoundingBox,Action> BoundingBoxDisabler = box => () => box.Target = null;
 
-    private Action SpatialMappingObserverStopper = () => SpatialMappingManager.Instance.StopObserver();
+    private static Action SpatialMappingObserverStarter = () => SpatialMappingManager.Instance.StartObserver();
 
-    private Action RoomPlanesCreator = () =>
+    private static Action SpatialMappingObserverStopper = () => SpatialMappingManager.Instance.StopObserver();
+
+    private static Action RoomPlanesCreator = () =>
     {
         // Generate planes based on the spatial map.
         var surfaceToPlanes = SurfaceMeshesToPlanes.Instance;
@@ -181,7 +171,7 @@ public class MovingSofaGameController : MonoBehaviour
         }
     };
 
-    private Action WallVertexRemover = () =>
+    private static Action WallVertexRemover = () =>
     {
         RemoveSurfaceVertices removeVerts = RemoveSurfaceVertices.Instance;
         if (removeVerts != null && removeVerts.enabled)
@@ -190,7 +180,7 @@ public class MovingSofaGameController : MonoBehaviour
         }
     };
 
-    private Func<Material,Action> WallSurfaceCreator = 
+    private static Func<Material,Action> WallSurfaceCreator = 
         wallPlaneMaterial => () => SpatialMappingManager.Instance.SetSurfaceMaterial(wallPlaneMaterial);
 
 #endregion

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
-using Functional.Option;
+using Measure = UnityEngine.GameObject;
+using Vector = UnityEngine.Vector3;
+using CameraLocation = UnityEngine.Transform;
 
 namespace MovingSofaProblem
 {
@@ -19,7 +20,7 @@ namespace MovingSofaProblem
 
     public static class StateTransitions
     {
-        static readonly Vector3 InitialMeasurePositionRelativeToOneUnitInFrontOfCamera = new Vector3(0.0f, -0.2f, 0.0f);
+        static readonly Vector InitialMeasurePositionRelativeToOneUnitInFrontOfCamera = new Vector(0.0f, -0.2f, 0.0f);
 
 
         public static StateTransition Start( Action<string> statusSpeaker)
@@ -31,8 +32,8 @@ namespace MovingSofaProblem
 
 
         public static StateTransition StartMeasuring( GameState currentState
-                                                    , Transform cameraTransform
-                                                    , Func<GameObject, PositionAndRotation, GameObject> measureCreator)
+                                                    , CameraLocation cameraTransform
+                                                    , Func<Measure, PositionAndRotation, Measure> measureCreator)
         {
             Func<GameState, GameState> createNewMeasure = state =>
             {
@@ -47,10 +48,10 @@ namespace MovingSofaProblem
 
 
         public static StateTransition StartFollowing( GameState currentState
-                                                    , Transform cameraTransform
+                                                    , CameraLocation cameraTransform
                                                     , Action boundingBoxDisabler
                                                     , Action spatialMappingObserverStarter
-                                                    , Func<GameObject, Transform, PositionAndRotation> moveMeasure)
+                                                    , Func<Measure, CameraLocation, PositionAndRotation> carryMeasure)
         {
             var newState = Following.StartFollowing(currentState);
 
@@ -61,7 +62,7 @@ namespace MovingSofaProblem
             Func<GameState, GameState> keepMeasureInFrontOfMe = 
                 state =>
                     {
-                        var newPositionAndRotation = moveMeasure(currentState.Measure, cameraTransform);
+                        var newPositionAndRotation = carryMeasure(currentState.Measure, cameraTransform);
                         state.InitialPath.Add(newPositionAndRotation.Position, newPositionAndRotation.Rotation);
                         return state;
                     };
@@ -72,12 +73,12 @@ namespace MovingSofaProblem
 
 
         public static StateTransition KeepFollowing( GameState currentState
-                                                   , Transform cameraTransform
-                                                   , Func<GameObject, Transform, PositionAndRotation> moveMeasure)
+                                                   , CameraLocation cameraTransform
+                                                   , Func<Measure, CameraLocation, PositionAndRotation> carryMeasure)
         {
             Func<GameState, GameState> keepMeasureInFrontOfMe = state =>
             {
-                var newPositionAndRotation = moveMeasure(currentState.Measure, cameraTransform);
+                var newPositionAndRotation = carryMeasure(currentState.Measure, cameraTransform);
                 state.InitialPath.Add(newPositionAndRotation.Position, newPositionAndRotation.Rotation);
                 return state;
             };
@@ -213,6 +214,47 @@ namespace MovingSofaProblem
             }
 
             return new StateTransition(newState, sideEffects);
+        }
+
+        public static StateTransition KeepReplaying(GameState currentState
+                                                   , float currentTime
+                                                   , float translationSpeed
+                                                   , float rotationSpeed
+                                                   , Func<Measure, PositionAndRotation, PositionAndRotation> moveMeasure)
+        {
+            var sideEffects = ToList();
+
+            switch (currentState.Mode)
+            {
+                case GameMode.Replaying:
+                    Func<GameState, GameState> repositionMeasure = state =>
+                        {
+                            // Using if statements with out parameters for performance
+                            PathStep currentPathStep;
+                            if (state.CurrentPathStep.TryGetValue(out currentPathStep))
+                            {
+                                var maybeNewPosition =
+                                    SpatialCalculations.MaybeNewInterpolatedPosition(
+                                        currentTime
+                                        , state.SegmentReplayStartTime
+                                        , translationSpeed
+                                        , rotationSpeed
+                                        , currentPathStep.PathSegment);
+
+                                PositionAndRotation newPositionAndRotation;
+                                if (maybeNewPosition.TryGetValue(out newPositionAndRotation))
+                                {
+                                    moveMeasure(state.Measure, newPositionAndRotation);
+                                }
+                            }
+                            return state;
+                        };
+
+                    sideEffects = ToList(repositionMeasure);
+                    break;
+            }
+
+            return new StateTransition(currentState, sideEffects);
         }
 
 
