@@ -6,53 +6,34 @@ namespace MovingSofaProblem.State
 {
     public sealed class WaitingToReplay : GameState
     {
-        override public string SayableStateDescription { get { return "Replaying the solution. Say 'next' to replay the next step."; } }
-        override public string SayableStatus { get { return "I am ready to replay the solution. Say 'next' to replay the next step."; } }
+        private string whatYouCanSayNow = "Say 'Next' to replay the next step.";
+        override public string SayableStateDescription { get { return "Replaying the solution. " + whatYouCanSayNow; } }
+        override public string SayableStatus { get { return "I am ready to replay the solution. You can " + whatYouCanSayNow; } }
 
         private WaitingToReplay(GameState priorState, PathStep firstStep) : base(GameMode.WaitingToReplay, priorState)
         {
             this.CurrentPathStep = firstStep;
-
-        }
-
-        internal static GameState IsWaitingToReplay(GameState priorState)
-        {
-            PathStep firstStep;
-            if (GameState.FirstStep(priorState).TryGetValue(out firstStep))
-            {
-                return new WaitingToReplay(priorState, firstStep);
-            }
-            else
-            {
-                return priorState;
-            }
         }
 
         public static StateTransition StartReplaying(GameState currentState)
         {
-            var newState = WaitingToReplay.IsWaitingToReplay(currentState);
-            var sideEffects = ToList();
-
-            if (newState.Mode == GameMode.WaitingToReplay)
+            PathStep firstStep;
+            if (! GameState.FirstStep(currentState).TryGetValue(out firstStep))
             {
-                Func<GameState, GameState> positionMeasureAtStart = state =>
-                {
-                    PathStep firstStep;
-                    if (state.CurrentPathStep.TryGetValue(out firstStep))
-                    {
-                        state.Measure.transform.position = firstStep.StartNode.Value.Position;
-                        state.Measure.transform.rotation = firstStep.StartNode.Value.Rotation;
-                    }
-                    return state;
-                };
-
-                sideEffects = ToList(positionMeasureAtStart, GameState.SayState);
-            }
-            else
-            {
-                sideEffects = ToList(GameState.Say("I can't replay the solution because I have no solution to replay."));
+                var errorSideEffects = ToList(GameState.Say("I can't replay the solution because I have no solution to replay."));
+                return new StateTransition(currentState, errorSideEffects);
             }
 
+            var newState = new WaitingToReplay(currentState, firstStep);
+
+            Func<GameState, GameState> placeMeasureAtStart = state =>
+            {
+                state.Measure.transform.position = firstStep.StartNode.Value.Position;
+                state.Measure.transform.rotation = firstStep.StartNode.Value.Rotation;
+                return state;
+            };
+
+            var sideEffects = ToList(placeMeasureAtStart, GameState.SayState);
             return new StateTransition(newState, sideEffects);
         }
     }

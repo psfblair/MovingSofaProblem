@@ -2,8 +2,9 @@ namespace MovingSofaProblem.State
 {
     public sealed class SolutionFound : GameState
     {
-        override public string SayableStateDescription { get { return "Finished figuring out a solution.  Say 'replay solution' to see it."; } }
-        override public string SayableStatus { get { return "I have figured out a solution. Say 'replay solution' to see it."; } }
+        private string whatYouCanSayNow = "Say 'Replay solution' to see it.";
+        override public string SayableStateDescription { get { return "Finished figuring out a solution. " + whatYouCanSayNow; } }
+        override public string SayableStatus { get { return "I have figured out a solution. You can " + whatYouCanSayNow; } }
 
         private SolutionFound(GameState priorState) : base(GameMode.SolutionFound, priorState) { }
 

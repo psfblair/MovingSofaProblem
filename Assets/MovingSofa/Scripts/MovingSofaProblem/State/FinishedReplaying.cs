@@ -2,8 +2,9 @@ namespace MovingSofaProblem.State
 {
     public sealed class FinishedReplaying : GameState
     {
-        override public string SayableStateDescription { get { return "Finished replaying the solution. Say 'replay solution' to replay again from the beginning."; } }
-        override public string SayableStatus { get { return "I have finished replaying the solution. Say 'replay solution' to replay again from the beginning."; } }
+        private string whatYouCanSayNow = "Say 'Replay solution' to replay again from the beginning..";
+        override public string SayableStateDescription { get { return "Finished replaying the solution. " + whatYouCanSayNow; } }
+        override public string SayableStatus { get { return "I have finished replaying the solution. You can " + whatYouCanSayNow; } }
 
         private FinishedReplaying(GameState priorState) : base(GameMode.FinishedReplaying, priorState)
         {

@@ -10,8 +10,9 @@ namespace MovingSofaProblem.State
         private static float replayingTranslationSpeed = 1.0f; // units/sec
         private static float replayingRotationSpeed = 1.0f; // degrees/sec
 
-        override public string SayableStateDescription { get { return "Replaying the solution. Say 'next' to replay the next step, 'again' to replay the current step, or 'replay solution' to start over from the beginning."; } }
-        override public string SayableStatus { get { return "I am in the middle of replaying the solution. Say 'next' to replay the next step, 'again' to replay the current step, or 'replay solution' to start over from the beginning."; } }
+        private string whatYouCanSayNow = "Say 'Next' to replay the next step, 'Again' to replay the current step, or 'Replay solution' to start over from the beginning.";
+        override public string SayableStateDescription { get { return "Replaying the solution. " + whatYouCanSayNow; } }
+        override public string SayableStatus { get { return "I am in the middle of replaying the solution. You can " + whatYouCanSayNow; } }
 
         private Replaying(GameState priorState, PathStep currentStep, float replayStartTime) : base(GameMode.Replaying, priorState)
         {
