@@ -108,65 +108,6 @@ NavMeshSettings:
     tileSize: 256
     accuratePlacement: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &294376481
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 5
-  m_Component:
-  - component: {fileID: 294376482}
-  - component: {fileID: 294376484}
-  - component: {fileID: 294376483}
-  m_Layer: 0
-  m_Name: SpatialProcessing
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &294376482
-Transform:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 294376481}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2.4851923, y: -0.122745395, z: -1.0226272}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 744149043}
-  m_RootOrder: 7
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &294376483
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 294376481}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d4077c41b4858904d8088a87ef45baed, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  BoundsExpansion: 0
---- !u!114 &294376484
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 294376481}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: acbc42345d6a90543ab66003022593fa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ActivePlanes: []
-  SurfacePlanePrefab: {fileID: 1000010593991404, guid: 184d6e9ce2d89844489583805253eb83,
-    type: 2}
-  MinArea: 0.025
-  drawPlanesMask: 7
-  destroyPlanesMask: 16
 --- !u!1 &546131849
 GameObject:
   m_ObjectHideFlags: 0
@@ -196,7 +137,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   measurePrefab: {fileID: 1281018242463154, guid: c8f19f6ce541e34419fa4c060cc55c40,
     type: 2}
-  wallPlane: {fileID: 2100000, guid: 496839ee4791ca340acba3dbee6b10ea, type: 2}
 --- !u!4 &546131851
 Transform:
   m_ObjectHideFlags: 0
@@ -273,12 +213,12 @@ Prefab:
         type: 2}
       propertyPath: BoundingBoxPrefab
       value: 
-      objectReference: {fileID: 160298, guid: 71288894e9fbd18498829c9be2d9b3bd, type: 2}
+      objectReference: {fileID: 160298, guid: cd435fa946a12fb42b7fe3f3e3bd24dc, type: 2}
     - target: {fileID: 114295064799608358, guid: 2effafb42a9bcdd4aafef7457b6efe67,
         type: 2}
       propertyPath: AppBarPrefab
       value: 
-      objectReference: {fileID: 1275815092924048, guid: 8bb0f9f606fb5b448922049f74bf0024,
+      objectReference: {fileID: 1275815092924048, guid: 9ed6d3e8b228a604d839073eff5bba5f,
         type: 2}
     m_RemovedComponents:
     - {fileID: 11416938, guid: 2effafb42a9bcdd4aafef7457b6efe67, type: 2}
@@ -337,11 +277,11 @@ MonoBehaviour:
             m_FloatArgument: 0
             m_StringArgument: 
             m_BoolArgument: 0
-          m_CallState: 1
+          m_CallState: 2
       m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine, Version=0.0.0.0, Culture=neutral,
         PublicKeyToken=null
-  - Keyword: Follow Me
-    KeyCode: 102
+  - Keyword: Come With Me
+    KeyCode: 99
     Response:
       m_PersistentCalls:
         m_Calls:
@@ -376,7 +316,7 @@ MonoBehaviour:
           m_CallState: 1
       m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine, Version=0.0.0.0, Culture=neutral,
         PublicKeyToken=null
-  - Keyword: Stop Following
+  - Keyword: Put It Down
     KeyCode: 59
     Response:
       m_PersistentCalls:
@@ -401,7 +341,7 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 546131850}
           m_MethodName: SayStatus
-          m_Mode: 5
+          m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
             m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine

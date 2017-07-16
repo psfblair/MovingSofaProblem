@@ -1,0 +1,142 @@
+using System;
+using MovingSofaProblem.Path;
+
+using Measure = UnityEngine.GameObject;
+
+namespace MovingSofaProblem.State
+{
+    public sealed class Replaying : GameState
+    {
+        private static float replayingTranslationSpeed = 1.0f; // units/sec
+        private static float replayingRotationSpeed = 1.0f; // degrees/sec
+
+        override public string SayableStateDescription { get { return "Replaying the solution. Say 'next' to replay the next step, 'again' to replay the current step, or 'replay solution' to start over from the beginning."; } }
+        override public string SayableStatus { get { return "I am in the middle of replaying the solution. Say 'next' to replay the next step, 'again' to replay the current step, or 'replay solution' to start over from the beginning."; } }
+
+        private Replaying(GameState priorState, PathStep currentStep, float replayStartTime) : base(GameMode.Replaying, priorState)
+        {
+            this.CurrentPathStep = currentStep;
+            this.SegmentReplayStartTime = replayStartTime;
+        }
+
+        public static StateTransition PlayNextSegment(GameState currentState, float replayStartTime)
+        {
+            var newState = Replaying.IsPlayingNextSegment(currentState, replayStartTime);
+            var sideEffects = ToList();
+
+            switch (newState.Mode)
+            {
+                case GameMode.Replaying:
+                    break;
+                case GameMode.FinishedReplaying:
+                    sideEffects = ToList(GameState.Say("You're at the end of the path."));
+                    break;
+                default:
+                    sideEffects = ToList(GameState.Say("I can't replay the solution because I have no solution to replay."));
+                    break;
+            }
+
+            return new StateTransition(newState, sideEffects);
+        }
+
+        public static StateTransition ReplayCurrentSegment(GameState currentState, float replayStartTime)
+        {
+            var newState = Replaying.IsPlayingNextSegment(currentState, replayStartTime);
+            var sideEffects = ToList();
+
+            switch (newState.Mode)
+            {
+                case GameMode.Replaying:
+                    break;
+                default:
+                    sideEffects = ToList(GameState.Say("I can't replay the current step because I currently don't have a step to replay."));
+                    break;
+            }
+
+            return new StateTransition(newState, sideEffects);
+        }
+
+        public static StateTransition KeepReplaying(GameState currentState
+                                                   , float currentTime
+                                                   , Func<Measure, PositionAndRotation, PositionAndRotation> moveMeasure)
+        {
+            var sideEffects = ToList();
+
+            switch (currentState.Mode)
+            {
+                case GameMode.Replaying:
+                    Func<GameState, GameState> repositionMeasure = state =>
+                    {
+                        // Using if statements with out parameters for performance
+                        PathStep currentPathStep;
+                        if (state.CurrentPathStep.TryGetValue(out currentPathStep))
+                        {
+                            var maybeNewPosition =
+                                SpatialCalculations.MaybeNewInterpolatedPosition(
+                                    currentTime
+                                    , state.SegmentReplayStartTime
+                                    , replayingTranslationSpeed
+                                    , replayingRotationSpeed
+                                    , currentPathStep.PathSegment);
+
+                            PositionAndRotation newPositionAndRotation;
+
+                            if (maybeNewPosition.TryGetValue(out newPositionAndRotation))
+                            {
+                                moveMeasure(state.Measure, newPositionAndRotation);
+                            }
+                        }
+                        return state;
+                    };
+
+                    sideEffects = ToList(repositionMeasure);
+                    break;
+            }
+
+            return new StateTransition(currentState, sideEffects);
+        }
+
+        internal static GameState IsPlayingNextSegment(GameState priorState, float replayStartTime)
+        {
+            if (priorState.Mode != GameMode.WaitingToReplay &&
+                priorState.Mode != GameMode.Replaying)
+            {
+                return priorState;
+            }
+
+            // Most Performant way of using Option type
+            PathStep pathStep;
+            if (!priorState.CurrentPathStep.TryGetValue(out pathStep))
+            {
+                return priorState;
+            }
+
+            PathStep nextStep;
+            if (PathStep.NextStep(pathStep).TryGetValue(out nextStep))
+            {
+                return new Replaying(priorState, nextStep, replayStartTime);
+            }
+            else
+            {
+                return FinishedReplaying.IsFinishedReplaying(priorState);
+            }
+        }
+
+        static internal GameState IsReplayingCurrentSegment(GameState priorState, float replayStartTime)
+        {
+            if (priorState.Mode == GameMode.WaitingToReplay ||
+                priorState.Mode == GameMode.Replaying ||
+                priorState.Mode == GameMode.FinishedReplaying)
+            {
+                // Most Performant way of using Option type
+                PathStep pathStep;
+                if (priorState.CurrentPathStep.TryGetValue(out pathStep))
+                {
+                    return new Replaying(priorState, pathStep, replayStartTime);
+                }
+            }
+
+            return priorState;
+        }
+    }
+}

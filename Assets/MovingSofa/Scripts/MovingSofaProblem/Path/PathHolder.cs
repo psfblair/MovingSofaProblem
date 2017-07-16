@@ -7,102 +7,8 @@ using Functional.Option;
 using Vector = UnityEngine.Vector3;
 using Rotation = UnityEngine.Quaternion;
 
-namespace MovingSofaProblem
+namespace MovingSofaProblem.Path
 {
-    public class Breadcrumb
-    {
-        public Breadcrumb(Vector position, Rotation rotation)
-        {
-            this.Position = position;
-            this.Rotation = rotation;
-        }
-
-        public Vector Position { get; private set; }
-        public Rotation Rotation { get; private set; }
-    }
-
-    public class PathSegment
-    {
-        private Breadcrumb start;
-        private Breadcrumb end;
-
-        public PathSegment(Breadcrumb start, Breadcrumb end)
-        {
-            this.start = start;
-            this.end = end;
-
-            var startPosition = start.Position;
-            var endPosition = end.Position;
-            XDisplacement = endPosition.x - startPosition.x;
-            YDisplacement = endPosition.y - startPosition.y;
-            ZDisplacement = endPosition.z - startPosition.z;
-
-            var startRotation = start.Rotation.eulerAngles;
-            var endRotation = end.Rotation.eulerAngles;
-            XAxisChange = (endRotation.x - startRotation.x) / 360;
-            YAxisChange = (endRotation.y - startRotation.y) / 360;
-            ZAxisChange = (endRotation.z - startRotation.z) / 360;
-        }
-
-        public Breadcrumb Start { get { return start; } }
-        public Breadcrumb End { get { return end; } }
-
-        public float XDisplacement { get; private set; }
-
-        public float YDisplacement { get; private set; }
-
-        public float ZDisplacement { get; private set; }
-
-        public float TranslationDistance
-        {
-            get { return Vector.Distance(Start.Position, End.Position); }
-        }
-
-        public float XAxisChange { get; private set; }
-
-        public float YAxisChange { get; private set; }
-
-        public float ZAxisChange { get; private set; }
-
-        public float RotationAngle
-        {
-            get { return Rotation.Angle(Start.Rotation, End.Rotation); }
-        }
-    }
-
-    public class PathStep
-    {
-        private LinkedListNode<Breadcrumb> start;
-        private LinkedListNode<Breadcrumb> end;
-        private PathSegment pathSegment;
-
-        public PathStep(LinkedListNode<Breadcrumb> start, LinkedListNode<Breadcrumb> end)
-        {
-            this.start = start;
-            this.end = end;
-            this.pathSegment = new PathSegment(start.Value, end.Value);
-        }
-
-        public LinkedListNode<Breadcrumb> StartNode { get { return start; } }
-        public LinkedListNode<Breadcrumb> EndNode { get { return end; } }
-        public PathSegment PathSegment { get { return pathSegment; } }
-
-        public static Option<PathStep> NextStep(PathStep step)
-        {
-            return step.EndNode.Next.ToOption().Select(
-                nextBreadcrumbNode => new PathStep(step.EndNode, nextBreadcrumbNode)
-            );
-        }
-
-        public static Option<PathStep> PreviousStep(PathStep step)
-        {
-            return step.StartNode.Previous.ToOption().Select(
-                previousBreadcrumbNode => new PathStep(previousBreadcrumbNode, step.StartNode)
-            );
-        }
-
-    }
-
     public class PathHolder
     {
         LinkedList<Breadcrumb> path;
@@ -147,15 +53,18 @@ namespace MovingSofaProblem
             }
 
             var pathToSimplify = pathHolder.path;
+            var firstElement = pathHolder.path.First<Breadcrumb>();
             var seed = new LinkedList<Breadcrumb>();
-            seed.AddFirst(pathToSimplify.First);
+            seed.AddFirst(firstElement);
 
             var newPath = pathToSimplify.Aggregate(seed, pathSimplifier);
 
             // Make sure the endpoint is the last point in the original path
-            if (newPath.Last != pathToSimplify.Last)
+            var newPathLast = newPath.Last<Breadcrumb>();
+            var originalPathLast = pathToSimplify.Last<Breadcrumb>();
+            if (newPathLast != originalPathLast)
             {
-                newPath.AddLast(pathToSimplify.Last);
+                newPath.AddLast(originalPathLast);
             }
 
             return new PathHolder(newPath);

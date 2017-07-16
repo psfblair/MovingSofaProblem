@@ -22,8 +22,8 @@ GameObject:
   - component: {fileID: 33833611682976466}
   - component: {fileID: 65581803817298990}
   - component: {fileID: 23265320504883750}
-  - component: {fileID: 114779551054316956}
-  - component: {fileID: 114248900630333074}
+  - component: {fileID: 114865331203783220}
+  - component: {fileID: 114690984356248200}
   m_Layer: 0
   m_Name: Measure
   m_TagString: Untagged
@@ -95,7 +95,7 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &114248900630333074
+--- !u!114 &114690984356248200
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -107,12 +107,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TagOnSelected:
-    Tag: Hidden
+    Tag: Default
   TagOnDeselected:
     Tag: Default
-  PermittedOperations: 19
+  PermittedOperations: 241
   ShowAppBar: 1
---- !u!114 &114779551054316956
+--- !u!114 &114865331203783220
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -124,8 +124,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FilterTag:
-    Tag: Hidden
-  ButtonState: 2
+    Tag: Default
+  ButtonState: 4
   RequireGaze: 1
   MainCollider: {fileID: 0}
   MainRenderer: {fileID: 0}

@@ -3,20 +3,8 @@ using Rotation = UnityEngine.Quaternion;
 using CameraLocation = UnityEngine.Transform;
 using Functional.Option;
 
-namespace MovingSofaProblem
+namespace MovingSofaProblem.Path
 {
-    public class PositionAndRotation
-    {
-        public PositionAndRotation(Vector position, Rotation rotation)
-        {
-            this.Position = position;
-            this.Rotation = rotation;
-        }
-
-        public Vector Position { get; private set; }
-        public Rotation Rotation { get; private set; }
-    }
-
     public static class SpatialCalculations
     {
         internal static PositionAndRotation OrientationRelativeToOneUnitInFrontOf(CameraLocation locationToBeInFrontOf, Vector relativePosition)
