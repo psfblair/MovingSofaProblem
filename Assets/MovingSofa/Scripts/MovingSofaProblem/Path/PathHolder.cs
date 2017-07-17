@@ -76,11 +76,11 @@ namespace MovingSofaProblem.Path
         static Func<LinkedList<Breadcrumb>, Breadcrumb, LinkedList<Breadcrumb>> pathSimplifier =
             (breadcrumbsSoFar, proposedNewBreadcrumb) =>
             {
-                const float xTranslationTolerance = 0.1f;
-                const float yTranslationTolerance = 0.1f;
-                const float xRotationTolerance = 0.05f;
-                const float yRotationTolerance = 0.05f;
-                const float zRotationTolerance = 0.05f;
+                const float xTranslationTolerance = 0.2f;
+                const float yTranslationTolerance = 0.2f;
+                const float xRotationTolerance = 0.1f;
+                const float yRotationTolerance = 0.1f;
+                const float zRotationTolerance = 0.1f;
 
                 var proposedPathSegment = new PathSegment(breadcrumbsSoFar.Last.Value, proposedNewBreadcrumb);
 

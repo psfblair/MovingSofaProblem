@@ -107,7 +107,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TagOnSelected:
-    Tag: Default
+    Tag: Hidden
   TagOnDeselected:
     Tag: Default
   PermittedOperations: 241
@@ -125,7 +125,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   FilterTag:
     Tag: Default
-  ButtonState: 4
+  ButtonState: 2
   RequireGaze: 1
   MainCollider: {fileID: 0}
   MainRenderer: {fileID: 0}

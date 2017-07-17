@@ -1,3 +1,5 @@
+using System;
+
 using MovingSofaProblem.Path;
 
 namespace MovingSofaProblem.State
@@ -13,10 +15,19 @@ namespace MovingSofaProblem.State
             this.PathToReplay = simplifiedPath;
         }
 
-        internal static PathSimplified HasSimplifiedPath(GameState priorState)
+        internal static StateTransition SimplifyPath(GameState priorState)
         {
+            // Make sure the final point where the object is dropped is in the path.
+            priorState.InitialPath.Add(priorState.Measure.transform.position, priorState.Measure.transform.rotation);
             var simplifiedPath = PathHolder.Simplify(priorState.InitialPath);
-            return new PathSimplified(priorState, simplifiedPath);
+            var newState = new PathSimplified(priorState, simplifiedPath);
+
+            Func<GameState, GameState> findSolution = state => { return SolutionFound.HasFoundSolution(state); };
+
+            // TODO Stop spinner as side effect
+
+            var sideEffects = ToList(findSolution, GameState.SayState);
+            return new StateTransition(newState, sideEffects);
         }
     }
 }

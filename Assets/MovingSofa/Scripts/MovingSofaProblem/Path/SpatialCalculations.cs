@@ -58,7 +58,7 @@ namespace MovingSofaProblem.Path
                                                              , float distanceToTravel)
         {
             var distanceTraveled = (currentTime - replayStartTime) * translationSpeed;
-            var proportionOfTranslationComplete = (distanceToTravel - distanceTraveled) / distanceToTravel;
+            var proportionOfTranslationComplete = distanceTraveled / distanceToTravel;
             return proportionOfTranslationComplete > 1.0 ? 1.0f : proportionOfTranslationComplete;
         }
 
@@ -68,7 +68,7 @@ namespace MovingSofaProblem.Path
                                                           , float angleToRotate)
         {
             var rotationTraveled = (currentTime - replayStartTime) * rotationSpeed;
-            var proportionOfRotationComplete = (angleToRotate - rotationTraveled) / angleToRotate;
+            var proportionOfRotationComplete = rotationTraveled / angleToRotate;
             return proportionOfRotationComplete > 1.0 ? 1.0f : proportionOfRotationComplete;
         }
 

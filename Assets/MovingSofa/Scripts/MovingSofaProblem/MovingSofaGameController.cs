@@ -23,6 +23,7 @@ namespace MovingSofaProblem
         {
             boundingBox = GameObject.FindObjectOfType<BoundingBox>();
             textToSpeechManager = GameObject.FindObjectOfType<TextToSpeechManager>();
+
             var stateTransition = Starting.Start(StatusSpeaker(textToSpeechManager));
             HandleStateTransition(stateTransition);
         }
@@ -75,14 +76,32 @@ namespace MovingSofaProblem
         public void StopFollowing()
         {
             var stateTransition = StoppedFollowing.StopFollowing(currentGameState
-                                                                , MeasureReleaser
+                                                                , MeasureReleaser(this)
                                                                 , SpatialMappingObserverStopper);
+            HandleStateTransition(stateTransition);
+        }
+
+        public void BreakFall_MeasureHasLanded(object source, EventArgs args)
+        {
+            var stateTransition = PathSimplified.SimplifyPath(currentGameState);
             HandleStateTransition(stateTransition);
         }
 
         public void StartReplaying()
         {
             var stateTransition = WaitingToReplay.StartReplaying(currentGameState);
+            HandleStateTransition(stateTransition);
+        }
+
+        public void PlayNextSegment()
+        {
+            var stateTransition = Replaying.PlayNextSegment(currentGameState, Time.time);
+            HandleStateTransition(stateTransition);
+        }
+
+        public void ReplayCurrentSegment()
+        {
+            var stateTransition = Replaying.ReplayCurrentSegment(currentGameState, Time.time);
             HandleStateTransition(stateTransition);
         }
 
@@ -143,13 +162,15 @@ namespace MovingSofaProblem
 
         private static Func<BoundingBox, Action> BoundingBoxDisabler = box => () => box.Target = null;
 
-        private static Action<GameObject> MeasureReleaser = measure =>
-        {
-            BreakFall breakFall = measure.AddComponent<BreakFall>();
-            Rigidbody measureRigidBody = measure.AddComponent<Rigidbody>();
-            measureRigidBody.mass = 5;
-            measureRigidBody.useGravity = true;
-        };
+        private static Func<MovingSofaGameController, Action<GameObject>> MeasureReleaser = controller => 
+            measure =>
+                {
+                    BreakFall breakFall = measure.AddComponent<BreakFall>();
+                    breakFall.MeasureHasLanded += controller.BreakFall_MeasureHasLanded;
+                    Rigidbody measureRigidBody = measure.AddComponent<Rigidbody>();
+                    measureRigidBody.mass = 20;
+                    measureRigidBody.useGravity = true;
+                };
 
         private static Action SpatialMappingObserverStarter = () => SpatialMappingManager.Instance.StartObserver();
 

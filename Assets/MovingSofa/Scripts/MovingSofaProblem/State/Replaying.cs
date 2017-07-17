@@ -7,8 +7,8 @@ namespace MovingSofaProblem.State
 {
     public sealed class Replaying : GameState
     {
-        private static float replayingTranslationSpeed = 1.0f; // units/sec
-        private static float replayingRotationSpeed = 1.0f; // degrees/sec
+        private static float replayingTranslationSpeed = 0.7f; // units/sec
+        private static float replayingRotationSpeed = 20.0f; // degrees/sec
 
         private string whatYouCanSayNow = "Say 'Next' to replay the next step, 'Again' to replay the current step, or 'Replay solution' to start over from the beginning.";
         override public string SayableStateDescription { get { return "Replaying the solution. " + whatYouCanSayNow; } }
@@ -22,7 +22,7 @@ namespace MovingSofaProblem.State
 
         public static StateTransition PlayNextSegment(GameState currentState, float replayStartTime)
         {
-            var newState = Replaying.IsPlayingNextSegment(currentState, replayStartTime);
+            var newState = Replaying.MaybeReplayingNextSegmentState(currentState, replayStartTime);
             var sideEffects = ToList();
 
             switch (newState.Mode)
@@ -42,7 +42,7 @@ namespace MovingSofaProblem.State
 
         public static StateTransition ReplayCurrentSegment(GameState currentState, float replayStartTime)
         {
-            var newState = Replaying.IsPlayingNextSegment(currentState, replayStartTime);
+            var newState = Replaying.MaybeReplayingCurrentSegmentState(currentState, replayStartTime);
             var sideEffects = ToList();
 
             switch (newState.Mode)
@@ -61,43 +61,39 @@ namespace MovingSofaProblem.State
                                                    , float currentTime
                                                    , Func<Measure, PositionAndRotation, PositionAndRotation> moveMeasure)
         {
-            var sideEffects = ToList();
-
-            switch (currentState.Mode)
+            if(currentState.Mode != GameMode.Replaying)
             {
-                case GameMode.Replaying:
-                    Func<GameState, GameState> repositionMeasure = state =>
-                    {
-                        // Using if statements with out parameters for performance
-                        PathStep currentPathStep;
-                        if (state.CurrentPathStep.TryGetValue(out currentPathStep))
-                        {
-                            var maybeNewPosition =
-                                SpatialCalculations.MaybeNewInterpolatedPosition(
-                                    currentTime
-                                    , state.SegmentReplayStartTime
-                                    , replayingTranslationSpeed
-                                    , replayingRotationSpeed
-                                    , currentPathStep.PathSegment);
-
-                            PositionAndRotation newPositionAndRotation;
-
-                            if (maybeNewPosition.TryGetValue(out newPositionAndRotation))
-                            {
-                                moveMeasure(state.Measure, newPositionAndRotation);
-                            }
-                        }
-                        return state;
-                    };
-
-                    sideEffects = ToList(repositionMeasure);
-                    break;
+                return new StateTransition(currentState, ToList());
             }
 
+            Func<GameState, GameState> repositionMeasure = state =>
+            {
+                // Using if statements with out parameters for performance
+                PathStep currentPathStep;
+                if (state.CurrentPathStep.TryGetValue(out currentPathStep))
+                {
+                    var maybeNewPosition =
+                        SpatialCalculations.MaybeNewInterpolatedPosition(
+                            currentTime
+                            , state.SegmentReplayStartTime
+                            , replayingTranslationSpeed
+                            , replayingRotationSpeed
+                            , currentPathStep.PathSegment);
+
+                    PositionAndRotation newPositionAndRotation;
+                    if (maybeNewPosition.TryGetValue(out newPositionAndRotation))
+                    {
+                        moveMeasure(state.Measure, newPositionAndRotation);
+                    }
+                }
+                return state;
+            };
+
+            var sideEffects = ToList(repositionMeasure);
             return new StateTransition(currentState, sideEffects);
         }
 
-        internal static GameState IsPlayingNextSegment(GameState priorState, float replayStartTime)
+        private static GameState MaybeReplayingNextSegmentState(GameState priorState, float replayStartTime)
         {
             if (priorState.Mode != GameMode.WaitingToReplay &&
                 priorState.Mode != GameMode.Replaying)
@@ -112,6 +108,11 @@ namespace MovingSofaProblem.State
                 return priorState;
             }
 
+            if (priorState.Mode == GameMode.WaitingToReplay)
+            {
+                return new Replaying(priorState, pathStep, replayStartTime);
+            }
+
             PathStep nextStep;
             if (PathStep.NextStep(pathStep).TryGetValue(out nextStep))
             {
@@ -123,7 +124,7 @@ namespace MovingSofaProblem.State
             }
         }
 
-        static internal GameState IsReplayingCurrentSegment(GameState priorState, float replayStartTime)
+        static private GameState MaybeReplayingCurrentSegmentState(GameState priorState, float replayStartTime)
         {
             if (priorState.Mode == GameMode.WaitingToReplay ||
                 priorState.Mode == GameMode.Replaying ||

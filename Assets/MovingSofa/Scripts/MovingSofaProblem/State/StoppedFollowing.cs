@@ -11,6 +11,8 @@ namespace MovingSofaProblem.State
 
         private StoppedFollowing(GameState priorState) : base(GameMode.StoppedFollowing, priorState)
         {
+            // Make sure we get the last spot before we stop following.
+            priorState.InitialPath.Add(priorState.Measure.transform.position, priorState.Measure.transform.rotation);
         }
 
         public static StateTransition StopFollowing(GameState currentState
@@ -26,25 +28,16 @@ namespace MovingSofaProblem.State
             var newState = new StoppedFollowing(currentState);
 
             Func<GameState, GameState> putDownMeasure =
-                state => 
-                    {
-                        measureReleaser(state.Measure);
-                        state.InitialPath.Add(state.Measure.transform.position, state.Measure.transform.rotation);
-                        return state;
-                    };
+                state => { measureReleaser(state.Measure); return state; };
 
             // TODO Show spinner as side effect
 
             Func<GameState, GameState> stopSpatialMappingObserver =
                 state => { spatialMappingObserverStopper(); return state; };
-            Func<GameState, GameState> simplifyPath =
-                state => { return PathSimplified.HasSimplifiedPath(state); };
-            Func<GameState, GameState> findSolution =
-                state => { return SolutionFound.HasFoundSolution(state); };
 
-            // TODO Stop spinner as side effect
-
-            var sideEffects = ToList(putDownMeasure, GameState.SayState, stopSpatialMappingObserver, simplifyPath, findSolution, GameState.SayState);
+            // We get to the PathSimplified state from an event triggered by BreakFall indicating the measure
+            // has reached its final resting point.
+            var sideEffects = ToList(putDownMeasure, GameState.SayState, stopSpatialMappingObserver);
 
             return new StateTransition(newState, sideEffects);
         }
