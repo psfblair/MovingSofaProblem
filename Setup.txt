@@ -8,15 +8,21 @@ Here is how things are set up in Unity:
   a) Add the HoloLens prefab from HUX/Prefabs/Interface/HoloLens
   b) Under it, on the InteractionManager, select only Tap, Hold, Manipulation Translate
   c) ManipulationManager should already have the BoundingBoxShell and AppBar
+    *) We make our own copy of the BoundingBoxShell and AppBar and put them in prefabs
+    *) Our AppBar should just have the Adjust/Done button
+    *) Our BoundingBoxShell should have 0 scale padding, and for permitted
+       operations select Drag, RotateY, ScaleX, ScaleY, ScaleZ
 
 3) Speech input:
   a) Remove the default KeywordRecognizer from the AudioManager under HoloLens
-  b) Add a KeywordRecognizer that autostarts with the keyword triggers:
+  b) Add a KeywordRecognizer that autostarts with the keyword triggers (and map them to the GameController):
       Measure object
-      Follow me
-      Stop following
-      Replay path
+      Come with me
+      Put it down
+      Replay solution
       What are you doing
+      Next
+      Again
 
 4) Text to speech:
     a) Create an AudioSource on an empty GameObject that is a child of CameraRig and
@@ -40,10 +46,5 @@ Here is how things are set up in Unity:
 
 6) SpatialMapping:
     a) Add SpatialMapping (say, under HoloLens)
-      *) Add the sample room mesh under Assets/SampleRoom/SampleSpatialMapping to
+    b) Add the sample room mesh under Assets/SampleRoom/SampleSpatialMapping to
           the SpatialMapping's ObjectSurfaceObserver RoomModel script
-    b) Create a GameObject called SpatialProcessing (again under HoloLens)
-      *) Add SurfaceMeshesToPlanes to SpatialProcessing and the
-          HoloToolkit SpatialMapping/Prefabs/SurfacePlane prefab to its SurfacePlanePrefab
-          DrawPlanes - Wall, Floor, Ceiling
-      *) Add RemoveSurfaceVertices to SpatialProcessing
