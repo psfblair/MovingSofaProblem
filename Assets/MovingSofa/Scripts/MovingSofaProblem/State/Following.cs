@@ -4,11 +4,14 @@ using MovingSofaProblem.Path;
 
 using CameraLocation = UnityEngine.Transform;
 using Measure = UnityEngine.GameObject;
+using Vector = UnityEngine.Vector3;
 
 namespace MovingSofaProblem.State
 {
     public sealed class Following : GameState
     {
+        static readonly Vector CarryPositionRelativeToOneUnitInFrontOfCamera = new Vector(0.0f, -0.2f, 0.0f);
+
         private string whatYouCanSayNow = "Say 'Put it down' when you have arrived at the place where you want to move the object.";
         override public string SayableStateDescription { get { return "I'm following you. Go to where you want to move the object. " + whatYouCanSayNow; } }
         override public string SayableStatus { get { return "I am following you. You can " + whatYouCanSayNow; } }
@@ -24,7 +27,7 @@ namespace MovingSofaProblem.State
                                                     , CameraLocation cameraTransform
                                                     , Action boundingBoxDisabler
                                                     , Action spatialMappingObserverStarter
-                                                    , Func<Measure, CameraLocation, PositionAndRotation> carryMeasure)
+                                                    , Func<Vector, Func<Measure, CameraLocation, PositionAndRotation>> carryMeasure)
         {
             var newState = new Following(currentState);
 
@@ -35,7 +38,8 @@ namespace MovingSofaProblem.State
             Func<GameState, GameState> keepMeasureInFrontOfMe =
                 state =>
                 {
-                    var newPositionAndRotation = carryMeasure(currentState.Measure, cameraTransform);
+                    var newPositionAndRotation = 
+                        carryMeasure(CarryPositionRelativeToOneUnitInFrontOfCamera)(currentState.Measure, cameraTransform);
                     state.InitialPath.Add(newPositionAndRotation.Position, newPositionAndRotation.Rotation);
                     return state;
                 };
@@ -46,11 +50,12 @@ namespace MovingSofaProblem.State
 
         public static StateTransition KeepFollowing(GameState currentState
                                                    , CameraLocation cameraTransform
-                                                   , Func<Measure, CameraLocation, PositionAndRotation> carryMeasure)
+                                                   , Func<Vector, Func<Measure, CameraLocation, PositionAndRotation>> carryMeasure)
         {
             Func<GameState, GameState> keepMeasureInFrontOfMe = state =>
             {
-                var newPositionAndRotation = carryMeasure(currentState.Measure, cameraTransform);
+                var newPositionAndRotation = 
+                    carryMeasure(CarryPositionRelativeToOneUnitInFrontOfCamera)(currentState.Measure, cameraTransform);
                 state.InitialPath.Add(newPositionAndRotation.Position, newPositionAndRotation.Rotation);
                 return state;
             };

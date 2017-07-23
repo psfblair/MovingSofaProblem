@@ -153,12 +153,14 @@ namespace MovingSofaProblem
                     return newPositionAndRotation;
                 };
 
-        private static Func<GameObject, Transform, PositionAndRotation> MeasureCarrier = (measure, cameraTransform) =>
-        {
-            var measureExtents = measure.GetComponent<Collider>().bounds.extents;
-            var newPositionAndRotation = SpatialCalculations.PositionInFrontOf(measureExtents, cameraTransform);
-            return MeasureMover(measure, newPositionAndRotation);
-        };
+        private static Func<Vector3, Func<GameObject, Transform, PositionAndRotation>> MeasureCarrier =
+            positionRelativeToForward =>
+                (measure, cameraTransform) =>
+                    {
+                        var newPositionAndRotation = 
+                            SpatialCalculations.OrientationRelativeToOneUnitForward(cameraTransform, positionRelativeToForward);
+                        return MeasureMover(measure, newPositionAndRotation);
+                    };
 
         private static Func<BoundingBox, Action> BoundingBoxDisabler = box => () => box.Target = null;
 

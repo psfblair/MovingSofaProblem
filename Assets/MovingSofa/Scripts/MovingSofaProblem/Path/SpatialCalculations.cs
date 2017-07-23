@@ -8,23 +8,19 @@ namespace MovingSofaProblem.Path
 {
     public static class SpatialCalculations
     {
-        internal static PositionAndRotation OrientationRelativeToOneUnitInFrontOf(CameraLocation locationToBeInFrontOf, Vector relativePosition)
+        internal static PositionAndRotation OrientationRelativeToOneUnitForward(CameraLocation locationToBeInFrontOf, Vector relativePosition)
         {
+            // The camera transform's forward is a unit vector in world space pointing forward from the camera.
+            // We just want the x and z components. So it's not exactly one unit in front (z), depending on x and y.
             var forward = new Vector(locationToBeInFrontOf.forward.x, 0.0f, locationToBeInFrontOf.forward.z);
             var position = locationToBeInFrontOf.position + forward + relativePosition;
-            // TODO? This doesn't seem to keep the rotation happening. Or does it?
-            var rotation = Rotation.Inverse(locationToBeInFrontOf.rotation);
+
+            // We want to rotate the object around the y axis only so that it keeps looking at the wearer.
+            Vector locationRotation = locationToBeInFrontOf.rotation.eulerAngles;
+            Rotation rotation = Rotation.Euler(0, -locationRotation.y, 0);
             return new PositionAndRotation(position, rotation);
         }
-
-        internal static PositionAndRotation PositionInFrontOf(Vector objectExtents, CameraLocation locationToBeInFrontOf)
-        {
-            const float yRelativePosition = -0.4f;
-            const float zRelativePosition = -0.5f;
-            var relativePosition = new Vector(0.0f, yRelativePosition + objectExtents.y, zRelativePosition + objectExtents.z);
-            return OrientationRelativeToOneUnitInFrontOf(locationToBeInFrontOf, relativePosition);
-        }
-
+        
         internal static float AngleInXZPlaneBetween(PathSegment previousPathSegment, PathSegment proposedPathSegment)
         {
             Func<PathSegment, Vector> xzProjectionGenerator =
@@ -39,6 +35,8 @@ namespace MovingSofaProblem.Path
             return AngleBetween(previousPathSegment, proposedPathSegment, yzProjectionGenerator);
         }
 
+        // This calculation uses unit vectors, so they both start at the origin. Thus we are dealing with the 
+        // acute side of the angle between the vectors
         private static float AngleBetween(PathSegment previousPathSegment
                                          , PathSegment proposedPathSegment
                                          , Func<PathSegment, Vector> projectionVectorGenerator)
