@@ -13,6 +13,7 @@ namespace MovingSofaProblem.State
             // TODO Do AI/search here
             // Redo the initial path with colliders against the planes, find all the places where it touches
             // Then try to solve those. Also can't be raised above the person's head too far.
+
             // TODO Save path to text asset
 
             return new SolutionFound(priorState);

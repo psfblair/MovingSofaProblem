@@ -21,10 +21,24 @@ namespace MovingSofaProblem.Path
             this.path = path;
         }
 
-        public void Add(Vector position, Rotation rotation)
+        public void Add(Vector position, Rotation rotation, float cameraY)
         {
-            var breadcrumb = new Breadcrumb(position, rotation);
+            var breadcrumb = new Breadcrumb(position, rotation, cameraY);
             path.AddLast(breadcrumb);
+        }
+
+        public static float FinalCameraY(PathHolder pathHolder)
+        {
+            var lastElement = pathHolder.path.Last<Breadcrumb>();
+            if(lastElement != null)
+            {
+                return lastElement.CameraY;
+            }
+            else
+            {
+                // Degenerate case. If we get here something is really wrong.
+                throw new InvalidOperationException("Illegal access to last item of path with no breadcrumbs");
+            }
         }
         
         public static bool HasSegments(PathHolder pathHolder)

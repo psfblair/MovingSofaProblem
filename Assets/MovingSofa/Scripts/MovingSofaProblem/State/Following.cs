@@ -16,10 +16,12 @@ namespace MovingSofaProblem.State
         override public string SayableStateDescription { get { return "I'm following you. Go to where you want to move the object. " + whatYouCanSayNow; } }
         override public string SayableStatus { get { return "I am following you. You can " + whatYouCanSayNow; } }
 
-        private Following(GameState priorState) : base(GameMode.Following, priorState)
+        private Following(GameState priorState, float cameraY) : base(GameMode.Following, priorState)
         {
             this.InitialPath = new PathHolder();
-            this.InitialPath.Add(priorState.Measure.transform.position, priorState.Measure.transform.rotation);
+            this.InitialPath.Add(priorState.Measure.transform.position
+                                 , priorState.Measure.transform.rotation
+                                 , cameraY);
             this.PathToReplay = new PathHolder();
         }
 
@@ -29,7 +31,7 @@ namespace MovingSofaProblem.State
                                                     , Action spatialMappingObserverStarter
                                                     , Func<Vector, Func<Measure, CameraLocation, PositionAndRotation>> carryMeasure)
         {
-            var newState = new Following(currentState);
+            var newState = new Following(currentState, cameraTransform.position.y);
 
             Func<GameState, GameState> disableBoundingBox =
                 state => { boundingBoxDisabler(); return state; };
@@ -40,7 +42,9 @@ namespace MovingSofaProblem.State
                 {
                     var newPositionAndRotation = 
                         carryMeasure(CarryPositionRelativeToOneUnitInFrontOfCamera)(currentState.Measure, cameraTransform);
-                    state.InitialPath.Add(newPositionAndRotation.Position, newPositionAndRotation.Rotation);
+                    state.InitialPath.Add(newPositionAndRotation.Position
+                                         , newPositionAndRotation.Rotation
+                                         , cameraTransform.position.y);
                     return state;
                 };
 
@@ -56,7 +60,9 @@ namespace MovingSofaProblem.State
             {
                 var newPositionAndRotation = 
                     carryMeasure(CarryPositionRelativeToOneUnitInFrontOfCamera)(currentState.Measure, cameraTransform);
-                state.InitialPath.Add(newPositionAndRotation.Position, newPositionAndRotation.Rotation);
+                state.InitialPath.Add(newPositionAndRotation.Position
+                                     , newPositionAndRotation.Rotation
+                                     , cameraTransform.position.y);
                 return state;
             };
 

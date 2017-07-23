@@ -1,6 +1,7 @@
 using System;
 
 using MovingSofaProblem.Path;
+using CameraLocation = UnityEngine.Transform;
 
 namespace MovingSofaProblem.State
 {
@@ -18,7 +19,10 @@ namespace MovingSofaProblem.State
         internal static StateTransition SimplifyPath(GameState priorState)
         {
             // Make sure the final point where the object is dropped is in the path.
-            priorState.InitialPath.Add(priorState.Measure.transform.position, priorState.Measure.transform.rotation);
+            // We will use the cameraY of the previous breadcrumb before we dropped the object.
+            priorState.InitialPath.Add(priorState.Measure.transform.position
+                                      , priorState.Measure.transform.rotation
+                                      , PathHolder.FinalCameraY(priorState.InitialPath));
             var simplifiedPath = PathHolder.Simplify(priorState.InitialPath);
             var newState = new PathSimplified(priorState, simplifiedPath);
 

@@ -76,6 +76,7 @@ namespace MovingSofaProblem
         public void StopFollowing()
         {
             var stateTransition = StoppedFollowing.StopFollowing(currentGameState
+                                                                , Camera.main.transform
                                                                 , MeasureReleaser(this)
                                                                 , SpatialMappingObserverStopper);
             HandleStateTransition(stateTransition);
