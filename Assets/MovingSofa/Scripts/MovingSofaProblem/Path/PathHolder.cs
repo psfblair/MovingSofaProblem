@@ -71,24 +71,32 @@ namespace MovingSofaProblem.Path
         }
 
         // Keep ignoring breadcrumbs in the path while we're moving forward and:
-        // * Our x,y position hasn't changed by more than n meters
+        // * The angle between the previous segment and the proposed next segment (projected in the XZ plane / YZ plane)
+        //   is not greater than n degrees -- i.e., we haven't turned significantly, and
         // * Our rotation hasn't changed by more than n% of a circle
         static Func<LinkedList<Breadcrumb>, Breadcrumb, LinkedList<Breadcrumb>> pathSimplifier =
             (breadcrumbsSoFar, proposedNewBreadcrumb) =>
             {
-                const float xTranslationTolerance = 0.2f;
-                const float yTranslationTolerance = 0.2f;
+                const float xTranslationAngleThreshold = 10.0f;
+                const float yTranslationAngleThreshold = 10.0f;
                 const float xRotationTolerance = 0.1f;
                 const float yRotationTolerance = 0.1f;
                 const float zRotationTolerance = 0.1f;
 
+                var previousPathSegment = new PathSegment(breadcrumbsSoFar.Last.Previous.Value, breadcrumbsSoFar.Last.Value);
                 var proposedPathSegment = new PathSegment(breadcrumbsSoFar.Last.Value, proposedNewBreadcrumb);
 
-                if (proposedPathSegment.XDisplacement > xTranslationTolerance
-                    || proposedPathSegment.YDisplacement > yTranslationTolerance
-                    || proposedPathSegment.XAxisChange > xRotationTolerance
-                    || proposedPathSegment.YAxisChange > yRotationTolerance
-                    || proposedPathSegment.ZAxisChange > zRotationTolerance)
+                var angleInXZPlaneBetweenSegments =
+                    SpatialCalculations.AngleInXZPlaneBetween(previousPathSegment, proposedPathSegment);
+                var angleInYZPlaneBetweenSegments =
+                    SpatialCalculations.AngleInYZPlaneBetween(previousPathSegment, proposedPathSegment);
+
+
+                if (angleInXZPlaneBetweenSegments > xTranslationAngleThreshold
+                    || angleInYZPlaneBetweenSegments > yTranslationAngleThreshold
+                    || proposedPathSegment.XAxisRotationChange > xRotationTolerance
+                    || proposedPathSegment.YAxisRotationChange > yRotationTolerance
+                    || proposedPathSegment.ZAxisRotationChange > zRotationTolerance)
                 {
                     // Mutation, ugh!
                     breadcrumbsSoFar.AddLast(proposedNewBreadcrumb);

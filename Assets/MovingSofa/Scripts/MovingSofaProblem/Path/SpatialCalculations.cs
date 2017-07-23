@@ -2,6 +2,7 @@
 using Rotation = UnityEngine.Quaternion;
 using CameraLocation = UnityEngine.Transform;
 using Functional.Option;
+using System;
 
 namespace MovingSofaProblem.Path
 {
@@ -22,6 +23,32 @@ namespace MovingSofaProblem.Path
             const float zRelativePosition = -0.5f;
             var relativePosition = new Vector(0.0f, yRelativePosition + objectExtents.y, zRelativePosition + objectExtents.z);
             return OrientationRelativeToOneUnitInFrontOf(locationToBeInFrontOf, relativePosition);
+        }
+
+        internal static float AngleInXZPlaneBetween(PathSegment previousPathSegment, PathSegment proposedPathSegment)
+        {
+            Func<PathSegment, Vector> xzProjectionGenerator =
+                pathSegment => new Vector(pathSegment.XDisplacement, 0.0f, pathSegment.ZDisplacement);
+            return AngleBetween(previousPathSegment, proposedPathSegment, xzProjectionGenerator);
+        }
+
+        internal static float AngleInYZPlaneBetween(PathSegment previousPathSegment, PathSegment proposedPathSegment)
+        {
+            Func<PathSegment, Vector> yzProjectionGenerator =
+                pathSegment => new Vector(0.0f, pathSegment.YDisplacement, pathSegment.ZDisplacement);
+            return AngleBetween(previousPathSegment, proposedPathSegment, yzProjectionGenerator);
+        }
+
+        private static float AngleBetween(PathSegment previousPathSegment
+                                         , PathSegment proposedPathSegment
+                                         , Func<PathSegment, Vector> projectionVectorGenerator)
+        {
+            var previousVector = projectionVectorGenerator(previousPathSegment);
+            var proposedVector = projectionVectorGenerator(proposedPathSegment);
+            var dotProduct = Vector.Dot(Vector.Normalize(previousVector), Vector.Normalize(proposedVector));
+
+            // Acos never gets above 7, so this will never go to plus or minus infinity
+            return (float) (Math.Acos(dotProduct) * 180 / Math.PI);
         }
 
         internal static Option<PositionAndRotation> MaybeNewInterpolatedPosition (

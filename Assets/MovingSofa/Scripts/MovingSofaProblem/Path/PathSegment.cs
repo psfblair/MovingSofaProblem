@@ -23,9 +23,9 @@ namespace MovingSofaProblem.Path
 
             var startRotation = start.Rotation.eulerAngles;
             var endRotation = end.Rotation.eulerAngles;
-            XAxisChange = (endRotation.x - startRotation.x) / 360;
-            YAxisChange = (endRotation.y - startRotation.y) / 360;
-            ZAxisChange = (endRotation.z - startRotation.z) / 360;
+            XAxisRotationChange = (endRotation.x - startRotation.x) / 360;
+            YAxisRotationChange = (endRotation.y - startRotation.y) / 360;
+            ZAxisRotationChange = (endRotation.z - startRotation.z) / 360;
         }
 
         public Breadcrumb Start { get { return start; } }
@@ -42,11 +42,11 @@ namespace MovingSofaProblem.Path
             get { return Vector.Distance(Start.Position, End.Position); }
         }
 
-        public float XAxisChange { get; private set; }
+        public float XAxisRotationChange { get; private set; }
 
-        public float YAxisChange { get; private set; }
+        public float YAxisRotationChange { get; private set; }
 
-        public float ZAxisChange { get; private set; }
+        public float ZAxisRotationChange { get; private set; }
 
         public float RotationAngle
         {
