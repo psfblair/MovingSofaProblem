@@ -83,14 +83,20 @@ namespace MovingSofaProblem.Path
                 const float yRotationTolerance = 0.1f;
                 const float zRotationTolerance = 0.1f;
 
-                var previousPathSegment = new PathSegment(breadcrumbsSoFar.Last.Previous.Value, breadcrumbsSoFar.Last.Value);
-                var proposedPathSegment = new PathSegment(breadcrumbsSoFar.Last.Value, proposedNewBreadcrumb);
+                var lastBreadcrumbNode = breadcrumbsSoFar.Last;
+                var proposedPathSegment = new PathSegment(lastBreadcrumbNode.Value, proposedNewBreadcrumb);
+                var angleInXZPlaneBetweenSegments = 0.0f;
+                var angleInYZPlaneBetweenSegments = 0.0f;
 
-                var angleInXZPlaneBetweenSegments =
-                    SpatialCalculations.AngleInXZPlaneBetween(previousPathSegment, proposedPathSegment);
-                var angleInYZPlaneBetweenSegments =
-                    SpatialCalculations.AngleInYZPlaneBetween(previousPathSegment, proposedPathSegment);
-
+                if (breadcrumbsSoFar.Last.Previous != null)
+                {
+                    var previousPathSegment = 
+                        new PathSegment(lastBreadcrumbNode.Previous.Value, lastBreadcrumbNode.Value);
+                    angleInXZPlaneBetweenSegments =
+                        SpatialCalculations.AngleInXZPlaneBetween(previousPathSegment, proposedPathSegment);
+                    angleInYZPlaneBetweenSegments =
+                        SpatialCalculations.AngleInYZPlaneBetween(previousPathSegment, proposedPathSegment);
+                }
 
                 if (angleInXZPlaneBetweenSegments > xTranslationAngleThreshold
                     || angleInYZPlaneBetweenSegments > yTranslationAngleThreshold
