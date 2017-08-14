@@ -11,7 +11,7 @@ namespace MovingSofaProblem.State
         internal static SolutionFound HasFoundSolution(GameState priorState)
         {
             // TODO Do AI/search here
-            // Redo the initial path with colliders against the planes, find all the places where it touches
+            // Redo the initial path with colliders against the room mesh, find all the places where it touches
             // Then try to solve those. Also can't be raised above the person's head too far.
 
             // TODO Save path to text asset
