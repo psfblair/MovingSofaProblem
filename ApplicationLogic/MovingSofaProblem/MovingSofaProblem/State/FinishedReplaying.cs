@@ -1,3 +1,4 @@
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("MovingSofaProblemTests")]
 namespace MovingSofaProblem.State
 {
     public sealed class FinishedReplaying : GameState

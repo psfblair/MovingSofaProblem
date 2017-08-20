@@ -6,4 +6,5 @@ open Swensen.Unquote
 module FinishedReplayingTests =
     [<Test>]
     let ``Finds the truth``() = 
-        true =! true
+        let priorState = Starting.Start()
+        let newState = FinishedReplaying.IsFinishedReplaying(priorState)

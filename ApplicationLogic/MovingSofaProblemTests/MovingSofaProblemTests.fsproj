@@ -72,6 +72,7 @@
     <Compile Include="Path\BreadcrumbTests.fs" />
     <Compile Include="Path\PathSegmentTests.fs" />
     <Compile Include="Path\PathStepTests.fs" />
+    <Compile Include="Path\SpatialCalculationsTests.fs" />
     <Compile Include="State\FinishedReplayingTests.fs" />
     <Content Include="packages.config" />
   </ItemGroup>

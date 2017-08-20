@@ -12,6 +12,7 @@ using Vector = UnityEngine.Vector3;
 using Rotation = UnityEngine.Quaternion;
 #endif
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("MovingSofaProblemTests")]
 namespace MovingSofaProblem.Path
 {
     public static class SpatialCalculations
@@ -28,7 +29,7 @@ namespace MovingSofaProblem.Path
             Rotation rotation = Rotation.Euler(0, -locationRotation.y, 0);
             return new PositionAndRotation(position, rotation);
         }
-        
+
         internal static float AngleInXZPlaneBetween(PathSegment previousPathSegment, PathSegment proposedPathSegment)
         {
             Func<PathSegment, Vector> xzProjectionGenerator =

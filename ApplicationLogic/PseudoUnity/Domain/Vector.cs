@@ -17,7 +17,7 @@ namespace Domain
 
         public static Vector operator +(Vector vector1, Vector vector2)
         {
-            throw new NotImplementedException();
+            return new Vector(vector1.x + vector2.x, vector1.y + vector2.y, vector1.z + vector2.z);
         }
 
         public static Vector operator -(Vector vector1, Vector vector2)

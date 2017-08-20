@@ -88,9 +88,28 @@ namespace Domain
             return (r.x * r.x) + (r.y * r.y) + (r.z * r.z) + (r.w * r.w);
         }
 
-        public static Rotation Euler(float x, float y, float z)
+        public static Rotation Euler(float heading, float attitude, float bank)
         {
-            throw new NotImplementedException();
+            var cosx = Math.Cos(heading);
+            var sinx = Math.Sin(heading);
+            var cosy = Math.Cos(attitude);
+            var siny = Math.Sin(attitude);
+            var cosz = Math.Cos(bank);
+            var sinz = Math.Sin(bank);
+
+            var w = Math.Sqrt(1.0 + (cosx * cosy) + (cosx * cosz) - (sinx * siny * sinz) + (cosy * cosz)) / 2.0;
+
+            var w4 = (4.0 * w);
+            var x = (( cosy * sinz) + (cosx * sinz) + (sinx * siny * cosz)) / w4;
+            var y = (( sinx * cosy) + (sinx * cosz) + (cosx * siny * sinz)) / w4;
+            var z = ((-sinx * sinz) + (cosx * siny * cosz) + siny) / w4;
+
+            return new Rotation(
+                Utilities.DoubleToFloat(x),
+                Utilities.DoubleToFloat(y),
+                Utilities.DoubleToFloat(z),
+                Utilities.DoubleToFloat(w)
+            );
         }
 
         public static Rotation Lerp(Rotation initialRotation, Rotation finalRotation, float proportionOfRotationComplete)
