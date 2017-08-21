@@ -1,6 +1,11 @@
 #Autosave files
 *~
 
+#Unignore solution files
+*.sln
+*.csproj
+*.fsproj
+
 #build
 [Oo]bj/
 [Bb]in/

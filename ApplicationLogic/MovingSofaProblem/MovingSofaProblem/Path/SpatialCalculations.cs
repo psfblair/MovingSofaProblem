@@ -44,21 +44,23 @@ namespace MovingSofaProblem.Path
             return AngleBetween(previousPathSegment, proposedPathSegment, yzProjectionGenerator);
         }
 
-        // This calculation uses unit vectors, so they both start at the origin. Thus we are dealing with the 
-        // acute side of the angle between the vectors
         private static float AngleBetween(PathSegment previousPathSegment
-                                         , PathSegment proposedPathSegment
-                                         , Func<PathSegment, Vector> projectionVectorGenerator)
+                                         , PathSegment nextPathSegment
+                                         , Func<PathSegment, Vector> planeProjector)
         {
-            var previousVector = projectionVectorGenerator(previousPathSegment);
-            var proposedVector = projectionVectorGenerator(proposedPathSegment);
-            var dotProduct = Vector.Dot(Vector.Normalize(previousVector), Vector.Normalize(proposedVector));
+            // The projector functions just take displacements, so both projections start at the origin and terminate at the result.
+            var projectionOfPrevious = planeProjector(previousPathSegment);
+            var projectionOfNext = planeProjector(nextPathSegment);
+            var dotProduct = Vector.Dot(Vector.Normalize(projectionOfPrevious), Vector.Normalize(projectionOfNext));
 
-            // Acos never gets above 7, so this will never go to plus or minus infinity
             return (float) (Math.Acos(dotProduct) * 180 / Math.PI);
         }
 
-        internal static Option<PositionAndRotation> MaybeNewInterpolatedPosition (
+		internal static bool IsMovementComplete(PathSegment pathSegment, Vector currentPosition, Rotation currentRotation) {
+            return pathSegment.End.Position == currentPosition && pathSegment.End.Rotation == currentRotation;
+        }
+
+        internal static PositionAndRotation InterpolatedPositionAndRotation (
             float currentTime
             , float replayStartTime
             , float translationSpeed
@@ -74,41 +76,45 @@ namespace MovingSofaProblem.Path
             var proportionOfRotationComplete =
                 ProportionOfRotationComplete(currentTime, replayStartTime, rotationSpeed, angleToRotate);
 
-            // If we have covered the entire distance, we don't have an update to the position
-            if (proportionOfTranslationComplete > 1.0 && proportionOfRotationComplete > 1.0)
-            {
-                return Option.None;
-            }
-
             var newPosition = InterpolatePosition(pathSegment.Start, pathSegment.End, proportionOfTranslationComplete);
             var newRotation = InterpolateRotation(pathSegment.Start, pathSegment.End, proportionOfRotationComplete);
 
-            return Option.Create(new PositionAndRotation(newPosition, newRotation));
+            return new PositionAndRotation(newPosition, newRotation);
         }
 
-        private static float ProportionOfTranslationComplete(float currentTime
+		// May be greater than 1.0; Lerp is clamped.
+		private static float ProportionOfTranslationComplete(float currentTime
                                                              , float replayStartTime
                                                              , float translationSpeed
                                                              , float distanceToTravel)
         {
+            if (Math.Abs(distanceToTravel) < 0.0001f) 
+            {
+                return 1.0f;
+            }
             var distanceTraveled = (currentTime - replayStartTime) * translationSpeed;
             var proportionOfTranslationComplete = distanceTraveled / distanceToTravel;
-            return proportionOfTranslationComplete > 1.0 ? 1.0f : proportionOfTranslationComplete;
+            return proportionOfTranslationComplete;
         }
 
+        // May be greater than 1.0; Lerp is clamped.
         private static float ProportionOfRotationComplete(float currentTime
                                                           , float replayStartTime
                                                           , float rotationSpeed
-                                                          , float angleToRotate)
+                                                          , float angleToRotateInDegrees)
         {
-            var rotationTraveled = (currentTime - replayStartTime) * rotationSpeed;
-            var proportionOfRotationComplete = rotationTraveled / angleToRotate;
-            return proportionOfRotationComplete > 1.0 ? 1.0f : proportionOfRotationComplete;
+			if (Math.Abs(angleToRotateInDegrees) < 0.0001f)
+			{
+				return 1.0f;
+			}
+			var rotationTraveled = (currentTime - replayStartTime) * rotationSpeed;
+            var proportionOfRotationComplete = rotationTraveled / angleToRotateInDegrees;
+            return proportionOfRotationComplete;
         }
 
         private static Vector InterpolatePosition(Breadcrumb startBreadcrumb
-                                                   , Breadcrumb endBreadcrumb
-                                                   , float proportionOfTranslationComplete)
+                                                 , Breadcrumb endBreadcrumb
+                                                 , float proportionOfTranslationComplete)
         {
             var initialPosition = startBreadcrumb.Position;
             var finalPosition = endBreadcrumb.Position;

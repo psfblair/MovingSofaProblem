@@ -33,7 +33,10 @@ namespace Domain
 
         public static Vector Lerp(Vector initialPosition, Vector finalPosition, float proportionOfTranslationComplete)
         {
-            throw new NotImplementedException();
+            Func<float, float, float, float> proportionateDistance = (initial, final, proportion) => (final - initial) * proportion;
+            return new Vector(proportionateDistance(initialPosition.x, finalPosition.x, proportionOfTranslationComplete),
+                              proportionateDistance(initialPosition.y, finalPosition.y, proportionOfTranslationComplete),
+                              proportionateDistance(initialPosition.z, finalPosition.z, proportionOfTranslationComplete));
         }
 
         public static float Distance(Vector position1, Vector position2)
@@ -43,12 +46,20 @@ namespace Domain
 
         public static float Dot(Vector vec1, Vector vec2)
         {
-            throw new NotImplementedException();
+            return (vec1.x * vec2.x) + (vec1.y * vec2.y) + (vec1.z * vec2.z);
         }
 
         public static Vector Normalize(Vector vectorToNormalize)
         {
-            throw new NotImplementedException();
+            var magnitude = Magnitude(vectorToNormalize);
+            if(magnitude < EPSILON) {
+                // Dummy - simple way of handling degenerate case
+                return new Vector(0.0f, 0.0f, 0.0f);
+            } else {
+				return new Vector(vectorToNormalize.x / magnitude,
+								  vectorToNormalize.y / magnitude,
+								  vectorToNormalize.z / magnitude);
+			}
         }
 
         public override string ToString()
@@ -56,17 +67,30 @@ namespace Domain
             return "(" + x + "," + y + "," + z + ")"; 
         }
 
-        public override bool Equals(object obj)
-        {
-            if (obj == null || GetType() != obj.GetType())
-            {
-                return false;
-            }
+        private const float EPSILON = 0.0001f;
 
-            var other = (Vector)obj;
-            return other.x == x && other.y == y && other.z == z;
-        }
+		public override bool Equals(object obj)
+		{
+			return this == (Vector)obj;
+		}
 
+        public static bool operator ==(Vector v1, Vector v2)
+		{
+			if (((object)v1 == null) || ((object)v2 == null))
+			{
+				return false;
+			}
+
+            return Math.Abs(v1.x - v2.x) < EPSILON &&
+                   Math.Abs(v1.y - v2.y) < EPSILON &&
+                   Math.Abs(v1.z - v2.z) < EPSILON;
+		}
+
+        public static bool operator !=(Vector v1, Vector v2)
+		{
+			return !(v1 == v2);
+		}
+		
         public override int GetHashCode()
         {
             int hash = this.GetType().ToString().GetHashCode();

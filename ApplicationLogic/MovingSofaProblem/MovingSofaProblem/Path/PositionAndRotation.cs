@@ -24,6 +24,7 @@ namespace MovingSofaProblem.Path
             return "Position: " + Position.ToString() + 
                 " Rotation: " + Rotation.ToString();
         }
+
         public override bool Equals(object obj)
         {
             if (obj == null || GetType() != obj.GetType())
@@ -32,6 +33,7 @@ namespace MovingSofaProblem.Path
             }
 
             var other = (PositionAndRotation)obj;
+            // Unity comparisons with epsilon require ==
             return other.Position == Position && other.Rotation == Rotation;
         }
 

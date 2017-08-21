@@ -77,17 +77,20 @@ namespace MovingSofaProblem.State
                 PathStep currentPathStep;
                 if (state.CurrentPathStep.TryGetValue(out currentPathStep))
                 {
-                    var maybeNewPosition =
-                        SpatialCalculations.MaybeNewInterpolatedPosition(
-                            currentTime
-                            , state.SegmentReplayStartTime
-                            , replayingTranslationSpeed
-                            , replayingRotationSpeed
-                            , currentPathStep.PathSegment);
-
-                    PositionAndRotation newPositionAndRotation;
-                    if (maybeNewPosition.TryGetValue(out newPositionAndRotation))
+                    if (!SpatialCalculations.IsMovementComplete(
+                            currentPathStep.PathSegment, 
+                            state.Measure.transform.position, 
+                            state.Measure.transform.rotation)
+                       )
                     {
+                        var newPositionAndRotation =
+                            SpatialCalculations.InterpolatedPositionAndRotation(
+                                currentTime
+                                , state.SegmentReplayStartTime
+                                , replayingTranslationSpeed
+                                , replayingRotationSpeed
+                                , currentPathStep.PathSegment);
+
                         moveMeasure(state.Measure, newPositionAndRotation);
                     }
                 }
