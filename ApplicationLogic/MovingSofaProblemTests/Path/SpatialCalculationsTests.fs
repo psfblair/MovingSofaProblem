@@ -1,9 +1,7 @@
 ﻿namespace MovingSofaProblemTests.Path
 
-open System.Collections.Generic
 open NUnit.Framework
 open Swensen.Unquote
-open Functional.Option
 
 open MovingSofaProblem.Path
 open Domain

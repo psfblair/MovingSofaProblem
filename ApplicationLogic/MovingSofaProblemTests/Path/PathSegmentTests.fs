@@ -2,6 +2,7 @@
 
 open NUnit.Framework
 open Swensen.Unquote
+
 open MovingSofaProblem.Path
 open Domain
 

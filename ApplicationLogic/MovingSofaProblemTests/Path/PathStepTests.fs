@@ -1,9 +1,10 @@
 ﻿namespace MovingSofaProblemTests.Path
 
 open System.Collections.Generic
+
 open NUnit.Framework
 open Swensen.Unquote
-open Functional.Option
+open MovingSofaProblemTests.Types
 
 open MovingSofaProblem.Path
 open Domain
@@ -48,7 +49,7 @@ module PathStepTests =
     [<Test>]
     let ``PathStep: Returns none if there is no next step``() = 
         let step = PathStep(second, third)  
-        test <@ PathStep.NextStep(step) = Option<PathStep>.None @>
+        test <@ PathStep.NextStep(step) = MaybePathStep.None @>
   
     [<Test>]
     let ``PathStep: Is connected to the previous step``() = 
@@ -58,4 +59,4 @@ module PathStepTests =
     [<Test>]
     let ``PathStep: Returns none if there is no previous step``() = 
         let step = PathStep(first, second)   
-        test <@ PathStep.PreviousStep(step) = Option<PathStep>.None @>
+        test <@ PathStep.PreviousStep(step) = MaybePathStep.None @>

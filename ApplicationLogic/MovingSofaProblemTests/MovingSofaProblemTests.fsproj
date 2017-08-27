@@ -93,12 +93,17 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Types\TypeAliases.fs" />
     <Compile Include="Path\PathHolderTests.fs" />
     <Compile Include="Path\BreadcrumbTests.fs" />
     <Compile Include="Path\PathSegmentTests.fs" />
     <Compile Include="Path\PathStepTests.fs" />
     <Compile Include="Path\SpatialCalculationsTests.fs" />
     <Compile Include="State\FinishedReplayingTests.fs" />
+    <Compile Include="State\StartingTests.fs" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Types\" />
   </ItemGroup>
 </Project>

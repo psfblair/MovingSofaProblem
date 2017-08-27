@@ -54,7 +54,7 @@ namespace MovingSofaProblem.State
         public abstract string SayableStatus { get; }
 
         protected PathHolder PathToReplay { get; set; }
-        protected static Option<PathStep> FirstStep(GameState state)
+        internal static Option<PathStep> FirstStep(GameState state)
         {
             return PathHolder.FirstStep(state.PathToReplay);
         }
