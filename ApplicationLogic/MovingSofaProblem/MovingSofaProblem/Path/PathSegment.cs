@@ -57,6 +57,11 @@ namespace MovingSofaProblem.Path
             get { return Rotation.Angle(Start.Rotation, End.Rotation); }
         }
 
+        public override string ToString()
+        {
+            return "Start: [" + Start + "] End: [" + End + "]";
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null || GetType() != obj.GetType())

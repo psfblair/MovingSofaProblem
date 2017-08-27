@@ -15,9 +15,9 @@ namespace MovingSofaProblem.Path
 {
     public class PathHolder
     {
-        LinkedList<Breadcrumb> path;
-        public PathHolder (): this(new LinkedList<Breadcrumb>())
-        { 
+        internal readonly LinkedList<Breadcrumb> path;
+        public PathHolder() : this(new LinkedList<Breadcrumb>())
+        {
         }
 
         private PathHolder(LinkedList<Breadcrumb> path)
@@ -38,12 +38,12 @@ namespace MovingSofaProblem.Path
                 var lastElement = pathHolder.path.Last<Breadcrumb>();
                 return Option.Create<float>(lastElement.CameraY);
             }
-            catch(InvalidOperationException e)
+            catch (InvalidOperationException e)
             {
                 return Option.None;
             }
         }
-        
+
         public static bool HasSegments(PathHolder pathHolder)
         {
             return pathHolder.path.First != null && pathHolder.path.First.Next != null;
@@ -64,26 +64,14 @@ namespace MovingSofaProblem.Path
 
         public static PathHolder Simplify(PathHolder pathHolder)
         {
-            if (! HasSegments(pathHolder))
+            if (!HasSegments(pathHolder))
             {
                 return pathHolder;
             }
 
             var pathToSimplify = pathHolder.path;
-            var firstElement = pathHolder.path.First<Breadcrumb>();
-            var seed = new LinkedList<Breadcrumb>();
-            seed.AddFirst(firstElement);
-
-            var newPath = pathToSimplify.Aggregate(seed, pathSimplifier);
-
-            // Make sure the endpoint is the last point in the original path
-            var newPathLast = newPath.Last<Breadcrumb>();
-            var originalPathLast = pathToSimplify.Last<Breadcrumb>();
-            if (newPathLast != originalPathLast)
-            {
-                newPath.AddLast(originalPathLast);
-            }
-
+            var accumulator = new LinkedList<Breadcrumb>();
+            var newPath = pathToSimplify.Aggregate(accumulator, pathSimplifier);
             return new PathHolder(newPath);
         }
 
@@ -91,6 +79,7 @@ namespace MovingSofaProblem.Path
         // * The angle between the previous segment and the proposed next segment (projected in the XZ plane / YZ plane)
         //   is not greater than n degrees -- i.e., we haven't turned significantly, and
         // * Our rotation hasn't changed by more than n% of a circle
+        // This algorithm always takes the last breadcrumb, even if it is below the deviation threshold.
         static Func<LinkedList<Breadcrumb>, Breadcrumb, LinkedList<Breadcrumb>> pathSimplifier =
             (breadcrumbsSoFar, proposedNewBreadcrumb) =>
             {
@@ -100,35 +89,60 @@ namespace MovingSofaProblem.Path
                 const float yRotationTolerance = 0.1f;
                 const float zRotationTolerance = 0.1f;
 
-                var lastBreadcrumbNode = breadcrumbsSoFar.Last;
-                var proposedPathSegment = new PathSegment(lastBreadcrumbNode.Value, proposedNewBreadcrumb);
-                var angleInXZPlaneBetweenSegments = 0.0f;
-                var angleInYZPlaneBetweenSegments = 0.0f;
+                var previousBreadcrumbNode = breadcrumbsSoFar.Last;
 
-                if (breadcrumbsSoFar.Last.Previous != null)
+                // We need at least two segments to get the angle between them.
+                if (previousBreadcrumbNode == null || previousBreadcrumbNode.Previous == null)
                 {
-                    var previousPathSegment = 
-                        new PathSegment(lastBreadcrumbNode.Previous.Value, lastBreadcrumbNode.Value);
-                    angleInXZPlaneBetweenSegments =
-                        SpatialCalculations.AngleInXZPlaneBetween(previousPathSegment, proposedPathSegment);
-                    angleInYZPlaneBetweenSegments =
-                        SpatialCalculations.AngleInYZPlaneBetween(previousPathSegment, proposedPathSegment);
-                }
-
-                if (angleInXZPlaneBetweenSegments > xTranslationAngleThreshold
-                    || angleInYZPlaneBetweenSegments > yTranslationAngleThreshold
-                    || proposedPathSegment.XAxisRotationChange > xRotationTolerance
-                    || proposedPathSegment.YAxisRotationChange > yRotationTolerance
-                    || proposedPathSegment.ZAxisRotationChange > zRotationTolerance)
-                {
-                    // Mutation, ugh!
+                    // We add the first and second breadcrumbs to the simplified path
                     breadcrumbsSoFar.AddLast(proposedNewBreadcrumb);
                     return breadcrumbsSoFar;
                 }
-                else
+
+				var proposedPathSegment = new PathSegment(previousBreadcrumbNode.Value, proposedNewBreadcrumb);
+				var previousPathSegment =
+                    new PathSegment(previousBreadcrumbNode.Previous.Value, previousBreadcrumbNode.Value);
+                var angleInXZPlaneBetweenSegments =
+                    SpatialCalculations.AngleInXZPlaneBetween(previousPathSegment, proposedPathSegment);
+                var angleInYZPlaneBetweenSegments =
+                    SpatialCalculations.AngleInYZPlaneBetween(previousPathSegment, proposedPathSegment);
+
+                if (angleInXZPlaneBetweenSegments <= xTranslationAngleThreshold
+                    && angleInYZPlaneBetweenSegments <= yTranslationAngleThreshold
+                    && previousPathSegment.XAxisRotationChange <= xRotationTolerance
+                    && previousPathSegment.YAxisRotationChange <= yRotationTolerance
+                    && previousPathSegment.ZAxisRotationChange <= zRotationTolerance)
                 {
-                    return breadcrumbsSoFar;
+                    // Mutation, ugh!
+                    breadcrumbsSoFar.RemoveLast();
                 }
+				
+				breadcrumbsSoFar.AddLast(proposedNewBreadcrumb);
+				return breadcrumbsSoFar;
             };
+
+
+		public override string ToString()
+		{
+            var itemStrings = path.Select(item => item.ToString());
+            return "Path: {" + String.Join(" ,\n", itemStrings) + "}";
+		}
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+            var other = (PathHolder)obj;
+            return path.SequenceEqual(other.path);
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = this.GetType().ToString().GetHashCode();
+            hash = (13 * hash) + path.GetHashCode();
+            return hash;
+        }
     }
 }
