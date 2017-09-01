@@ -10,7 +10,7 @@ open Domain
 
 module MeasuringTests =
     [<Test>]
-    let ``Initializes the Measuring state``() = 
+    let ``Initializes the Measuring state but does not immediately transition to Measuring``() = 
         let (spokenState, startingState) = StateUtilities.initialState
         let cameraLocation = StateUtilities.cameraAtOrigin
         let startMeasuringStateTransition =
@@ -19,6 +19,7 @@ module MeasuringTests =
         let state = startMeasuringStateTransition.NewState
         test <@ state.CurrentPathStep = MaybePathStep.None @>
         test <@ state.Mode = GameMode.Starting @>
+
         test <@ state.Measure.transform.position = StateUtilities.origin @>
         test <@ state.Measure.transform.rotation = StateUtilities.zeroRotation @>
         test <@ state.Measure.transform.forward = StateUtilities.origin @>
@@ -26,7 +27,7 @@ module MeasuringTests =
         test <@ GameState.FirstStep(state) = MaybePathStep.None @>
 
     [<Test>]
-    let ``Creates a measure in side effects``() = 
+    let ``Creates a measure and transitions to the Measuring state in the first side effect``() = 
         let (spokenState, startingState) = StateUtilities.initialState
         let cameraLocation = StateUtilities.cameraAtOrigin
         let startMeasuringStateTransition =
