@@ -34,21 +34,19 @@ module MeasuringTests =
                 startingState, 
                 cameraLocation, 
                 fun measure positionAndRotation -> 
-                    StateUtilities.measureAt positionAndRotation.Position positionAndRotation.Rotation positionAndRotation.Position
+                    StateUtilities.measureAt positionAndRotation.Position positionAndRotation.Rotation
             )
 
         let sideEffects = startMeasuringStateTransition.SideEffects |> List.ofSeq
-
         test <@ List.length sideEffects = 2 @>
 
         let sideEffect = List.head sideEffects 
         let newState = sideEffect.Invoke(startMeasuringStateTransition.NewState)
+        test <@ newState.Mode = GameMode.Measuring @>
 
         let initialPositionRelativeToCamera = Vector(0.0f, -0.2f, 1.0f)
         test <@ newState.Measure.transform.position = initialPositionRelativeToCamera @>
         test <@ newState.Measure.transform.rotation = StateUtilities.zeroRotation @>
-        test <@ newState.Measure.transform.forward = initialPositionRelativeToCamera @>
-        test <@ newState.Mode = GameMode.Measuring @>
 
 
     [<Test>]

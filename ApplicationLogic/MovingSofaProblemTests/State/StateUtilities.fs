@@ -19,6 +19,8 @@ module StateUtilities =
         let zeroRotation = zeroRotation
         Situation(originPosition, zeroRotation, forwardZ)
 
-    let measureAt position rotation forward =
-        let situation = Situation(position, rotation, forward)
+    let measureAt position rotation =
+        // When we instantiate the Measure in Unity we just provide position and
+        // rotation, not forward.
+        let situation = Situation(position, rotation, forwardZ)
         Measure(situation)
