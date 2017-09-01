@@ -1,5 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -74,7 +73,7 @@
     <Reference Include="FSharp.Core">
       <HintPath Condition="Exists('..\..\..\..\..\..\..\Library\Frameworks\Mono.framework\Versions\5.2.0\lib\mono\fsharp\FSharp.Core.dll')">..\..\..\..\..\..\..\Library\Frameworks\Mono.framework\Versions\5.2.0\lib\mono\fsharp\FSharp.Core.dll</HintPath>
       <HintPath Condition="Exists('..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\4.3.1.0\FSharp.Core.dll')">..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\4.3.1.0\FSharp.Core.dll</HintPath>
-   </Reference>
+    </Reference>
     <Reference Include="Unquote">
       <HintPath>..\MovingSofaProblem\packages\Unquote.3.2.0\lib\net45\Unquote.dll</HintPath>
     </Reference>
@@ -93,17 +92,18 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Types\" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Types\TypeAliases.fs" />
     <Compile Include="Path\PathHolderTests.fs" />
     <Compile Include="Path\BreadcrumbTests.fs" />
     <Compile Include="Path\PathSegmentTests.fs" />
     <Compile Include="Path\PathStepTests.fs" />
     <Compile Include="Path\SpatialCalculationsTests.fs" />
-    <Compile Include="State\FinishedReplayingTests.fs" />
+    <Compile Include="State\StateUtilities.fs" />
+    <Compile Include="State\MeasuringTests.fs" />
     <Compile Include="State\StartingTests.fs" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Types\" />
   </ItemGroup>
 </Project>

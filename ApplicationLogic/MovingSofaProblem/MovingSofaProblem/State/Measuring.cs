@@ -3,7 +3,7 @@ using System;
 using MovingSofaProblem.Path;
 
 #if UNIT_TESTS
-using CameraLocation = Domain.CameraLocation;
+using Situation = Domain.Situation;
 using Measure = Domain.Measure;
 using Vector = Domain.Vector;
 #else
@@ -28,7 +28,7 @@ namespace MovingSofaProblem.State
         }
 
         public static StateTransition StartMeasuring(GameState currentState
-                                                    , CameraLocation cameraTransform
+                                                    , Situation cameraTransform
                                                     , Func<Measure, PositionAndRotation, Measure> measureCreator)
         {
             Func<GameState, GameState> createNewMeasure = state =>

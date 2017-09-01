@@ -3,7 +3,7 @@
 using Functional.Option;
 
 #if UNIT_TESTS
-using CameraLocation = Domain.CameraLocation;
+using Situation = Domain.Situation;
 using Vector = Domain.Vector;
 using Rotation = Domain.Rotation;
 #else
@@ -17,7 +17,7 @@ namespace MovingSofaProblem.Path
 {
     public static class SpatialCalculations
     {
-        internal static PositionAndRotation OrientationRelativeToOneUnitForward(CameraLocation locationToBeInFrontOf, Vector relativePosition)
+        internal static PositionAndRotation OrientationRelativeToOneUnitForward(Situation locationToBeInFrontOf, Vector relativePosition)
         {
             // The camera transform's forward is a unit vector in world space pointing forward from the camera.
             // We just want the x and z components. So it's not exactly one unit in front (z), depending on x and y.

@@ -38,7 +38,7 @@ namespace MovingSofaProblem.Path
                 var lastElement = pathHolder.path.Last<Breadcrumb>();
                 return Option.Create<float>(lastElement.CameraY);
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException)
             {
                 return Option.None;
             }

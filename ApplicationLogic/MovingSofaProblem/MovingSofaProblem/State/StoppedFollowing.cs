@@ -1,7 +1,7 @@
 using System;
 
 #if UNIT_TESTS
-using CameraLocation = Domain.CameraLocation;
+using Situation = Domain.Situation;
 using Measure = Domain.Measure;
 #else
 using CameraLocation = UnityEngine.Transform;
@@ -24,7 +24,7 @@ namespace MovingSofaProblem.State
         }
 
         public static StateTransition StopFollowing(GameState currentState
-                                                   , CameraLocation cameraTransform
+                                                   , Situation cameraTransform
                                                    , Action<Measure> measureReleaser
                                                    , Action spatialMappingObserverStopper)
         {

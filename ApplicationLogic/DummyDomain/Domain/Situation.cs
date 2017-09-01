@@ -1,8 +1,8 @@
 ﻿namespace Domain
 {
-    public class CameraLocation
+    public class Situation
     {
-        public CameraLocation(Vector position, Rotation rotation, Vector forward)
+        public Situation(Vector position, Rotation rotation, Vector forward)
         {
             this.position = position;
             this.rotation = rotation;
@@ -27,7 +27,7 @@
 				return false;
 			}
 
-			var other = (CameraLocation)obj;
+			var other = (Situation)obj;
 			return other.position == position && other.rotation == rotation && other.forward == forward;
 		}
 

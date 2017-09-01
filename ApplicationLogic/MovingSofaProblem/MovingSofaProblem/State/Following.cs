@@ -3,7 +3,7 @@ using System;
 using MovingSofaProblem.Path;
 
 #if UNIT_TESTS
-using CameraLocation = Domain.CameraLocation;
+using Situation = Domain.Situation;
 using Measure = Domain.Measure;
 using Vector = Domain.Vector;
 #else
@@ -32,10 +32,10 @@ namespace MovingSofaProblem.State
         }
 
         public static StateTransition StartFollowing(GameState currentState
-                                                    , CameraLocation cameraTransform
+                                                    , Situation cameraTransform
                                                     , Action boundingBoxDisabler
                                                     , Action spatialMappingObserverStarter
-                                                    , Func<Vector, Func<Measure, CameraLocation, PositionAndRotation>> carryMeasure)
+                                                    , Func<Vector, Func<Measure, Situation, PositionAndRotation>> carryMeasure)
         {
             var newState = new Following(currentState, cameraTransform.position.y);
 
@@ -59,8 +59,8 @@ namespace MovingSofaProblem.State
         }
 
         public static StateTransition KeepFollowing(GameState currentState
-                                                   , CameraLocation cameraTransform
-                                                   , Func<Vector, Func<Measure, CameraLocation, PositionAndRotation>> carryMeasure)
+                                                   , Situation cameraTransform
+                                                   , Func<Vector, Func<Measure, Situation, PositionAndRotation>> carryMeasure)
         {
             Func<GameState, GameState> keepMeasureInFrontOfMe = state =>
             {

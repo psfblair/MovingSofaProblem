@@ -18,7 +18,7 @@ module SpatialCalculationsTests =
 
     [<Test>]
     let ``SpatialCalculations: Calculates position and orientation relative to one unit in front of the camera``() =
-        let cameraLoc = CameraLocation(Vector(2.0f, 3.0f, 4.0f), Rotation(0.5f, 0.6f, 0.7f, 90.0f), forwardOneZFromOrigin)
+        let cameraLoc = Situation(Vector(2.0f, 3.0f, 4.0f), Rotation(0.5f, 0.6f, 0.7f, 90.0f), forwardOneZFromOrigin)
 
         // This calculation is expected to leave rotation at zero except on the y axis.
         // For ease of testing, the Dummy euler angles just multiplies x,y,z of rotation by 360.
