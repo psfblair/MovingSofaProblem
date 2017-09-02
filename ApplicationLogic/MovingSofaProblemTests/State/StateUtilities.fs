@@ -53,8 +53,24 @@ module StateUtilities =
         let startingTransition = Starting.Start(fun text -> spokenState := text)
         (startingTransition.NewState, spokenState)
 
-    let measuringState = 
-        let start = initialState ()
-        let measuringState =
-            Measuring.StartMeasuring(fst start, cameraAtOrigin, dummyMeasureCreator).NewState
-        (fst start, measuringState)
+    let measuringState () = 
+        let beforeState = initialState ()
+        let stateTransition =
+            Measuring.StartMeasuring(fst beforeState, cameraAtOrigin, dummyMeasureCreator)
+
+        let measureCreatingSideEffect = stateTransition.SideEffects |> List.ofSeq |>  List.head 
+        let measuringState = measureCreatingSideEffect.Invoke(stateTransition.NewState)
+
+        (measuringState, snd beforeState)
+
+    let followingState () = 
+        let beforeState = measuringState ()
+        let afterState =
+            Following.StartFollowing(
+                fst beforeState
+                , cameraAtOrigin
+                , fun state -> state
+                , fun state -> state
+                , dummyMeasurePositioner
+            ).NewState
+        (afterState, snd beforeState)

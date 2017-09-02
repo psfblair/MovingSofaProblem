@@ -20,14 +20,14 @@ module FollowingTests =
         )
 
     [<Test>]
-    let ``Can reach the Following state from Starting``() = 
+    let ``Can be reached from the Starting state``() = 
         let (startingState, _) = StateUtilities.initialState ()   
         let stateTransition = startFollowingFrom startingState
         test <@ stateTransition.NewState.Mode = GameMode.Following @>
 
     [<Test>]
-    let ``Can reach the Following state from Measuring``() = 
-        let (_, measuringState) = StateUtilities.measuringState      
+    let ``Can be reached from the Measuring state``() = 
+        let (measuringState, _) = StateUtilities.measuringState ()      
         let stateTransition = startFollowingFrom measuringState
         test <@ stateTransition.NewState.Mode = GameMode.Following @>
 
@@ -35,7 +35,7 @@ module FollowingTests =
 
     [<Test>]
     let ``Initializes initial path to measure's position and camera's Y``() = 
-        let startingState = StateUtilities.initialState () |> fst
+        let (startingState, _) = StateUtilities.initialState ()
         startingState.Measure.transform.position <- Vector(5.0f, 4.0f, 3.0f)
 
         let cameraPosition = Situation(Vector(2.0f, 0.2f, 1.0f), StateUtilities.zeroRotation, StateUtilities.forwardZ)
@@ -54,6 +54,14 @@ module FollowingTests =
 
         test <@ List.length initialPath = 1 @>
         test <@ List.head initialPath = Breadcrumb(Vector(5.0f, 4.0f, 3.0f), StateUtilities.zeroRotation, 0.2f) @>
+
+    [<Test>]
+    let ``Has four side effects``() = 
+        let (startingState, _) = StateUtilities.initialState ()  
+        let stateTransition = startFollowingFrom startingState
+        let sideEffects = stateTransition.SideEffects |> List.ofSeq
+
+        test <@ List.length sideEffects = 4 @>
 
     [<Test>]
     let ``Disables bounding box as first side effect``() = 
@@ -109,7 +117,6 @@ module FollowingTests =
                             PositionAndRotation(newPosition, situation.rotation)
                     )
             )
-
 
         let stateTransition = 
             Following.StartFollowing(
@@ -170,11 +177,11 @@ module FollowingTests =
                 , StateUtilities.dummyMeasurePositioner
             ).NewState
 
-        let sideEffects = Following.SayStatus(followingState) |> List.ofSeq 
+        let sideEffects = GameState.SayStatus(followingState) |> List.ofSeq 
         test <@ List.length sideEffects = 1 @>
 
         let newState = (List.head sideEffects).Invoke(followingState)
-
         test <@ newState = followingState @>
+
         test <@ !spokenStateRef = "Right now I am following you. You can " + 
                 "Say 'Put it down' when you have arrived at the place where you want to move the object." @>
