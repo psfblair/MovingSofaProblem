@@ -104,6 +104,7 @@
     <Compile Include="State\StateUtilities.fs" />
     <Compile Include="State\1_StartingTests.fs" />
     <Compile Include="State\2_MeasuringTests.fs" />
+    <Compile Include="State\3_FollowingTests.fs" />
     <None Include="packages.config" />
   </ItemGroup>
 </Project>

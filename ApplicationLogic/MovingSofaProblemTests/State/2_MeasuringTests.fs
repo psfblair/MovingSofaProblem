@@ -11,7 +11,7 @@ open Domain
 module MeasuringTests =
     [<Test>]
     let ``Initializes the Measuring state but does not immediately transition to Measuring``() = 
-        let (spokenState, startingState) = StateUtilities.initialState
+        let (startingState, _) = StateUtilities.initialState ()
         let cameraLocation = StateUtilities.cameraAtOrigin
         let startMeasuringStateTransition =
              Measuring.StartMeasuring(startingState, cameraLocation, fun measure positionAndRotation -> measure)
@@ -28,15 +28,14 @@ module MeasuringTests =
 
     [<Test>]
     let ``Creates a measure and transitions to the Measuring state in the first side effect``() = 
-        let (spokenState, startingState) = StateUtilities.initialState
+        let (startingState, _) = StateUtilities.initialState ()
         let cameraLocation = StateUtilities.cameraAtOrigin
-        let startMeasuringStateTransition =
-             Measuring.StartMeasuring(
-                startingState, 
-                cameraLocation, 
-                fun measure positionAndRotation -> 
-                    StateUtilities.measureAt positionAndRotation.Position positionAndRotation.Rotation
+        let measureCreator = 
+            System.Func<Measure, PositionAndRotation, Measure>(
+                fun measure positionAndRotation -> StateUtilities.measureAt positionAndRotation.Position positionAndRotation.Rotation
             )
+
+        let startMeasuringStateTransition = Measuring.StartMeasuring(startingState, cameraLocation, measureCreator)
 
         let sideEffects = startMeasuringStateTransition.SideEffects |> List.ofSeq
         test <@ List.length sideEffects = 2 @>
@@ -51,8 +50,8 @@ module MeasuringTests =
 
 
     [<Test>]
-    let ``Speaks the state in side effects``() = 
-        let (whatSheSaidRef, startingState) = StateUtilities.initialState
+    let ``Speaks the state in the second side effect``() = 
+        let (startingState, spokenStateRef) = StateUtilities.initialState ()
         let cameraLocation = StateUtilities.cameraAtOrigin
         let startMeasuringStateTransition =
              Measuring.StartMeasuring(startingState, cameraLocation, fun measure positionAndRotation -> measure)
@@ -64,5 +63,5 @@ module MeasuringTests =
 
         let speakingSideEffect = List.tail sideEffects |> List.head
         speakingSideEffect.Invoke(measuringState) |> ignore
-        test <@ !whatSheSaidRef = "You can measure an object now. Say 'Come with me' when " + 
+        test <@ !spokenStateRef = "You can measure an object now. Say 'Come with me' when " + 
                 "you have finished and are ready to indicate where you want to move the object." @>
