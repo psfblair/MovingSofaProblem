@@ -101,11 +101,12 @@
     <Compile Include="Path\PathSegmentTests.fs" />
     <Compile Include="Path\PathStepTests.fs" />
     <Compile Include="Path\SpatialCalculationsTests.fs" />
-    <Compile Include="State\StateUtilities.fs" />
+    <Compile Include="State\StateTestUtilities.fs" />
     <Compile Include="State\1_StartingTests.fs" />
     <Compile Include="State\2_MeasuringTests.fs" />
     <Compile Include="State\3_FollowingTests.fs" />
     <Compile Include="State\4_StoppedFollowingTests.fs" />
+    <Compile Include="State\5_PathSimplifiedTests.fs" />
     <None Include="packages.config" />
   </ItemGroup>
 </Project>

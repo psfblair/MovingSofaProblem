@@ -13,32 +13,38 @@ module FollowingTests =
     let startFollowingFrom state =
         Following.StartFollowing(
               state
-            , StateUtilities.cameraAtOrigin
+            , StateTestUtilities.cameraAtOrigin
             , fun state -> state
             , fun state -> state
-            , StateUtilities.dummyMeasurePositioner
+            , StateTestUtilities.dummyMeasurePositioner
         )
 
     [<Test>]
     let ``Can be reached from the Starting state``() = 
-        let (startingState, _) = StateUtilities.initialState ()   
+        let (startingState, _) = StateTestUtilities.initialState ()   
         let stateTransition = startFollowingFrom startingState
         test <@ stateTransition.NewState.Mode = GameMode.Following @>
 
     [<Test>]
     let ``Can be reached from the Measuring state``() = 
-        let (measuringState, _) = StateUtilities.measuringState ()      
+        let (measuringState, _) = StateTestUtilities.measuringState ()      
         let stateTransition = startFollowingFrom measuringState
+        test <@ stateTransition.NewState.Mode = GameMode.Following @>
+
+    [<Test>]
+    let ``Can be reached from the StoppedFollowing state``() = 
+        let (stoppedFollowingState, _) = StateTestUtilities.stoppedFollowingState ()      
+        let stateTransition = startFollowingFrom stoppedFollowingState
         test <@ stateTransition.NewState.Mode = GameMode.Following @>
 
     // TODO other states you can reach Following from
 
     [<Test>]
     let ``Initializes initial path to measure's position and camera's Y``() = 
-        let (startingState, _) = StateUtilities.initialState ()
+        let (startingState, _) = StateTestUtilities.initialState ()
         startingState.Measure.transform.position <- Vector(5.0f, 4.0f, 3.0f)
 
-        let cameraPosition = Situation(Vector(2.0f, 0.2f, 1.0f), StateUtilities.zeroRotation, StateUtilities.forwardZ)
+        let cameraPosition = Situation(Vector(2.0f, 0.2f, 1.0f), StateTestUtilities.zeroRotation, StateTestUtilities.forwardZ)
 
         let stateTransition = 
             Following.StartFollowing(
@@ -46,18 +52,18 @@ module FollowingTests =
                 , cameraPosition
                 , fun state -> state
                 , fun state -> state
-                , StateUtilities.dummyMeasurePositioner
+                , StateTestUtilities.dummyMeasurePositioner
             )
 
         let stateAfterTransition = stateTransition.NewState
         let initialPath = stateAfterTransition.InitialPath.path |> List.ofSeq
 
         test <@ List.length initialPath = 1 @>
-        test <@ List.head initialPath = Breadcrumb(Vector(5.0f, 4.0f, 3.0f), StateUtilities.zeroRotation, 0.2f) @>
+        test <@ List.head initialPath = Breadcrumb(Vector(5.0f, 4.0f, 3.0f), StateTestUtilities.zeroRotation, 0.2f) @>
 
     [<Test>]
     let ``Has four side effects``() = 
-        let (startingState, _) = StateUtilities.initialState ()  
+        let (startingState, _) = StateTestUtilities.initialState ()  
         let stateTransition = startFollowingFrom startingState
         let sideEffects = stateTransition.SideEffects |> List.ofSeq
 
@@ -69,11 +75,11 @@ module FollowingTests =
 
         let stateTransition = 
             Following.StartFollowing(
-                  StateUtilities.initialState () |> fst
-                , StateUtilities.cameraAtOrigin
+                  StateTestUtilities.initialState () |> fst
+                , StateTestUtilities.cameraAtOrigin
                 , fun state -> boundingBoxDisabled <- true; state
                 , fun state -> state
-                , StateUtilities.dummyMeasurePositioner
+                , StateTestUtilities.dummyMeasurePositioner
             )
         let stateAfterTransition = stateTransition.NewState
         let firstSideEffect = stateTransition.SideEffects |> List.ofSeq |> List.head
@@ -89,11 +95,11 @@ module FollowingTests =
 
         let stateTransition = 
             Following.StartFollowing(
-                  StateUtilities.initialState () |> fst
-                , StateUtilities.cameraAtOrigin
+                  StateTestUtilities.initialState () |> fst
+                , StateTestUtilities.cameraAtOrigin
                 , fun state -> state
                 , fun state -> spatialMappingObserverStarted <- true; state
-                , StateUtilities.dummyMeasurePositioner
+                , StateTestUtilities.dummyMeasurePositioner
             )
         let stateAfterTransition = stateTransition.NewState
         let secondSideEffect = stateTransition.SideEffects |> List.ofSeq |> List.item 1
@@ -120,8 +126,8 @@ module FollowingTests =
 
         let stateTransition = 
             Following.StartFollowing(
-                  StateUtilities.initialState () |> fst
-                , StateUtilities.cameraAtOrigin
+                  StateTestUtilities.initialState () |> fst
+                , StateTestUtilities.cameraAtOrigin
                 , fun state -> state
                 , fun state -> state
                 , measurePositioner
@@ -134,7 +140,7 @@ module FollowingTests =
         // (which is down 0.2 on the Y axis. Our dummy positioner adds the relative position to the camera position and
         // puts the measure there, and returns that position and rotation.
         let expectedNewPosition = Vector(0.0f, -0.2f, 0.0f)
-        let expectedNewRotation = StateUtilities.zeroRotation
+        let expectedNewRotation = StateTestUtilities.zeroRotation
         let expectedCameraY = 0.0f
 
         test <@ postMoveState.Measure.transform.position = expectedNewPosition @>
@@ -142,20 +148,20 @@ module FollowingTests =
 
         let initialPath = postMoveState.InitialPath.path |> List.ofSeq
         test <@ List.length initialPath = 2 @>
-        test <@ List.head initialPath = Breadcrumb(StateUtilities.origin, StateUtilities.zeroRotation, 0.0f) @>
+        test <@ List.head initialPath = Breadcrumb(StateTestUtilities.origin, StateTestUtilities.zeroRotation, 0.0f) @>
         test <@ List.item 1 initialPath = Breadcrumb(expectedNewPosition, expectedNewRotation, expectedCameraY) @>
 
     [<Test>]
     let ``Speaks the state in the fourth side effect``() = 
-        let (startingState, spokenStateRef) = StateUtilities.initialState () 
+        let (startingState, spokenStateRef) = StateTestUtilities.initialState () 
 
         let stateTransition = 
             Following.StartFollowing(
                   startingState
-                , StateUtilities.cameraAtOrigin
+                , StateTestUtilities.cameraAtOrigin
                 , fun state -> state
                 , fun state -> state
-                , StateUtilities.dummyMeasurePositioner
+                , StateTestUtilities.dummyMeasurePositioner
             )
 
         let fourthSideEffect = stateTransition.SideEffects |> List.ofSeq |> List.item 3
@@ -164,17 +170,18 @@ module FollowingTests =
         test <@ !spokenStateRef = "I'm following you. Go to where you want to move the object. " + 
                 "Say 'Put it down' when you have arrived at the place where you want to move the object." @>
 
+
     [<Test>]
     let ``Can tell you what state you are in``() = 
-        let (startingState, spokenStateRef) = StateUtilities.initialState () 
+        let (startingState, spokenStateRef) = StateTestUtilities.initialState () 
 
         let followingState = 
             Following.StartFollowing(
                   startingState
-                , StateUtilities.cameraAtOrigin
+                , StateTestUtilities.cameraAtOrigin
                 , fun state -> state
                 , fun state -> state
-                , StateUtilities.dummyMeasurePositioner
+                , StateTestUtilities.dummyMeasurePositioner
             ).NewState
 
         let sideEffects = GameState.SayStatus(followingState) |> List.ofSeq 

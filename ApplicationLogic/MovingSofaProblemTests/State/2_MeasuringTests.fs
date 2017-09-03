@@ -13,36 +13,64 @@ module MeasuringTests =
     let startMeasuringFrom state =
         Measuring.StartMeasuring(
               state
-            , StateUtilities.cameraAtOrigin
+            , StateTestUtilities.cameraAtOrigin
             , fun measure positionAndRotation -> measure
         )
 
     [<Test>]
-    let ``Initializes the Measuring state but does not immediately transition to Measuring``() = 
-        let (startingState, _) = StateUtilities.initialState ()
+    let ``Can be reached from the Starting state but does not immediately transition to Measuring``() = 
+        let (startingState, _) = StateTestUtilities.initialState ()      
+        let stateTransition = startMeasuringFrom startingState
+        test <@ stateTransition.NewState.Mode = GameMode.Starting @>
+
+        let firstSideEffect = stateTransition.SideEffects |> List.ofSeq |> List.head
+        let newState = firstSideEffect.Invoke(stateTransition.NewState)
+        test <@ newState.Mode = GameMode.Measuring @>
+
+    [<Test>]
+    let ``Can be reached from the Following state``() = 
+        let (followingState, _) = StateTestUtilities.followingState ()      
+        let stateTransition = startMeasuringFrom followingState
+        test <@ stateTransition.NewState.Mode = GameMode.Following @>
+
+        let firstSideEffect = stateTransition.SideEffects |> List.ofSeq |> List.head
+        let newState = firstSideEffect.Invoke(stateTransition.NewState)
+        test <@ newState.Mode = GameMode.Measuring @>
+
+    [<Test>]
+    let ``Can be reached from the StoppedFollowing state``() = 
+        let (stoppedFollowingState, _) = StateTestUtilities.stoppedFollowingState ()      
+        let stateTransition = startMeasuringFrom stoppedFollowingState
+        test <@ stateTransition.NewState.Mode = GameMode.StoppedFollowing @>
+
+        let firstSideEffect = stateTransition.SideEffects |> List.ofSeq |> List.head
+        let newState = firstSideEffect.Invoke(stateTransition.NewState)
+        test <@ newState.Mode = GameMode.Measuring @>
+
+    [<Test>]
+    let ``Initializes the Measuring state``() = 
+        let (startingState, _) = StateTestUtilities.initialState ()
         let startMeasuringStateTransition = startMeasuringFrom startingState
 
         let state = startMeasuringStateTransition.NewState
-        test <@ state.CurrentPathStep = MaybePathStep.None @>
-        test <@ state.Mode = GameMode.Starting @>
-
-        test <@ state.Measure.transform.position = StateUtilities.origin @>
-        test <@ state.Measure.transform.rotation = StateUtilities.zeroRotation @>
-        test <@ state.Measure.transform.forward = StateUtilities.origin @>
+        test <@ state.Measure.transform.position = StateTestUtilities.origin @>
+        test <@ state.Measure.transform.rotation = StateTestUtilities.zeroRotation @>
+        test <@ state.Measure.transform.forward = StateTestUtilities.origin @>
         test <@ state.InitialPath.path.Count = 0 @>
+        test <@ state.CurrentPathStep = MaybePathStep.None @>
         test <@ GameState.FirstStep(state) = MaybePathStep.None @>
 
     [<Test>]
     let ``Creates a measure and transitions to the Measuring state in the first side effect``() = 
-        let (startingState, _) = StateUtilities.initialState ()
+        let (startingState, _) = StateTestUtilities.initialState ()
         let measureCreator = 
             System.Func<Measure, PositionAndRotation, Measure>(
                 fun measure positionAndRotation -> 
-                    StateUtilities.measureAt positionAndRotation.Position positionAndRotation.Rotation
+                    StateTestUtilities.measureAt positionAndRotation.Position positionAndRotation.Rotation
             )
 
         let startMeasuringStateTransition = 
-            Measuring.StartMeasuring(startingState, StateUtilities.cameraAtOrigin, measureCreator)
+            Measuring.StartMeasuring(startingState, StateTestUtilities.cameraAtOrigin, measureCreator)
 
         let sideEffects = startMeasuringStateTransition.SideEffects |> List.ofSeq
         test <@ List.length sideEffects = 2 @>
@@ -53,12 +81,12 @@ module MeasuringTests =
 
         let initialPositionRelativeToCamera = Vector(0.0f, -0.2f, 1.0f)
         test <@ newState.Measure.transform.position = initialPositionRelativeToCamera @>
-        test <@ newState.Measure.transform.rotation = StateUtilities.zeroRotation @>
+        test <@ newState.Measure.transform.rotation = StateTestUtilities.zeroRotation @>
 
 
     [<Test>]
     let ``Speaks the state in the second side effect``() = 
-        let (startingState, spokenStateRef) = StateUtilities.initialState ()
+        let (startingState, spokenStateRef) = StateTestUtilities.initialState ()
         let startMeasuringStateTransition = startMeasuringFrom startingState
         let sideEffects = startMeasuringStateTransition.SideEffects |> List.ofSeq
 
@@ -72,7 +100,7 @@ module MeasuringTests =
 
     [<Test>]
     let ``Can tell you what state you are in``() = 
-        let (measuringState, spokenStateRef) = StateUtilities.measuringState ()
+        let (measuringState, spokenStateRef) = StateTestUtilities.measuringState ()
 
         let sayStatusSideEffects = GameState.SayStatus(measuringState) |> List.ofSeq
         test <@ List.length sayStatusSideEffects = 1 @>

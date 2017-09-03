@@ -13,14 +13,14 @@ module StoppedFollowingTests =
     let stopFollowingFrom state =
         StoppedFollowing.StopFollowing(
               state
-            , StateUtilities.cameraAtOrigin
+            , StateTestUtilities.cameraAtOrigin
             , fun gameObject -> ()
             , fun state -> state
         )
 
     [<Test>]
     let ``Can be reached from the Following state``() = 
-        let (beforeState, _) = StateUtilities.followingState ()   
+        let (beforeState, _) = StateTestUtilities.followingState ()   
         let stateTransition = stopFollowingFrom beforeState
 
         let newState = stateTransition.NewState
@@ -28,39 +28,32 @@ module StoppedFollowingTests =
 
     [<Test>]
     let ``Cannot be reached from the Starting state``() = 
-        let (startingState, spokenStateRef) = StateUtilities.initialState ()   
+        let (startingState, spokenStateRef) = StateTestUtilities.initialState ()   
         let stateTransition = stopFollowingFrom startingState
 
         let newState = stateTransition.NewState
         test <@ newState.Mode = GameMode.Starting @>
 
-        let sideEffects = stateTransition.SideEffects |> List.ofSeq
-        test <@ List.length sideEffects = 1 @>
-
-        let sideEffect = List.head sideEffects
-        let stateAfterSideEffect = sideEffect.Invoke(newState)
-        test <@ stateAfterSideEffect.Mode = GameMode.Starting @>
-        test <@ !spokenStateRef = "I can't put it down because I'm not carrying anything right now." @>
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks 
+                "I can't put it down because I'm not carrying anything right now." spokenStateRef newState
 
 
     [<Test>]
     let ``Cannot be reached from the Measuring state``() = 
-        let (measuringState, _) = StateUtilities.measuringState ()    
+        let (measuringState, spokenStateRef) = StateTestUtilities.measuringState ()    
         let stateTransition = stopFollowingFrom measuringState
 
         let newState = stateTransition.NewState
         test <@ newState.Mode = GameMode.Measuring @>
 
-        let sideEffects = stateTransition.SideEffects |> List.ofSeq
-        test <@ List.length sideEffects = 1 @>
-
-        let sideEffect = List.head sideEffects
-        let stateAfterSideEffect = sideEffect.Invoke(newState)
-        test <@ stateAfterSideEffect.Mode = GameMode.Measuring @>
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks 
+                "I can't put it down because I'm not carrying anything right now." spokenStateRef newState
 
     [<Test>]
     let ``Has three side effects``() = 
-        let (beforeState, _) = StateUtilities.followingState ()   
+        let (beforeState, _) = StateTestUtilities.followingState ()   
         let stateTransition = stopFollowingFrom beforeState
 
         let newState = stateTransition.NewState
@@ -69,12 +62,12 @@ module StoppedFollowingTests =
 
     [<Test>]
     let ``Releases the measure in the first side effect``() = 
-        let (beforeState, spokenStateRef) = StateUtilities.followingState ()
+        let (beforeState, spokenStateRef) = StateTestUtilities.followingState ()
         let mutable measureReleased = false  
         let stateTransition = 
             StoppedFollowing.StopFollowing(
                   beforeState
-                , StateUtilities.cameraAtOrigin
+                , StateTestUtilities.cameraAtOrigin
                 , fun gameObject -> measureReleased <- true; ()
                 , fun state -> state
             )
@@ -87,10 +80,9 @@ module StoppedFollowingTests =
 
         test <@ measureReleased = true @>
 
-
     [<Test>]
     let ``Speaks the state in the second side effect``() = 
-        let (beforeState, spokenStateRef) = StateUtilities.followingState ()
+        let (beforeState, spokenStateRef) = StateTestUtilities.followingState ()
         let stateTransition = stopFollowingFrom beforeState
 
         let newState = stateTransition.NewState
@@ -103,12 +95,12 @@ module StoppedFollowingTests =
 
     [<Test>]
     let ``Stops the spatial mapping observer in the third side effect``() = 
-        let (beforeState, spokenStateRef) = StateUtilities.followingState ()
+        let (beforeState, spokenStateRef) = StateTestUtilities.followingState ()
         let mutable spatialMappingObserverStopped = false  
         let stateTransition = 
             StoppedFollowing.StopFollowing(
                   beforeState
-                , StateUtilities.cameraAtOrigin
+                , StateTestUtilities.cameraAtOrigin
                 , fun gameObject -> ()
                 , fun state -> spatialMappingObserverStopped <- true; state
             )
@@ -123,7 +115,7 @@ module StoppedFollowingTests =
 
     [<Test>]
     let ``Can tell you what state you are in``() = 
-        let (beforeState, spokenStateRef) = StateUtilities.followingState ()
+        let (beforeState, spokenStateRef) = StateTestUtilities.followingState ()
         let stateTransition = stopFollowingFrom beforeState
         let stopFollowingState = stateTransition.NewState
 

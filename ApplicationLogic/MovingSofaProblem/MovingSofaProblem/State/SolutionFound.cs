@@ -1,3 +1,5 @@
+using MovingSofaProblem.Path;
+
 namespace MovingSofaProblem.State
 {
     public sealed class SolutionFound : GameState
@@ -8,7 +10,7 @@ namespace MovingSofaProblem.State
 
         private SolutionFound(GameState priorState) : base(GameMode.SolutionFound, priorState) { }
 
-        internal static SolutionFound HasFoundSolution(GameState priorState)
+        internal static SolutionFound HasFoundSolution(GameState priorState, PathHolder solution)
         {
             // TODO Do AI/search here
             // Redo the initial path with colliders against the room mesh, find all the places where it touches

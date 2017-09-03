@@ -1,10 +1,15 @@
 ﻿namespace MovingSofaProblemTests.State
 
+open Swensen.Unquote
+
 open MovingSofaProblem.Path
 open MovingSofaProblem.State
 open Domain
 
-module StateUtilities =
+type CSharpFunc<'a, 'b> = System.Func<'a, 'b>
+type CSharpList<'a> = System.Collections.Generic.List<'a>
+
+module StateTestUtilities =
 
 (**********************************************************************************************************************)
 (************************************************ OBJECT CONSTRUCTORS *************************************************)
@@ -74,3 +79,27 @@ module StateUtilities =
                 , dummyMeasurePositioner
             ).NewState
         (afterState, snd beforeState)
+
+    let stoppedFollowingState () =
+        let beforeState = followingState ()
+        let afterState =
+            StoppedFollowing.StopFollowing(
+                fst beforeState
+                , cameraAtOrigin
+                , fun gameObject -> ()
+                , fun state -> state
+            ).NewState
+        (afterState, snd beforeState)
+
+(**********************************************************************************************************************)
+(************************************************* COMPLEX ASSERTIONS *************************************************)
+(**********************************************************************************************************************)
+
+    let testSingleSideEffectSpeaks (spokenText: string) (spokenStateRef: string ref) (currentState: GameState) (sideEffects: CSharpList<CSharpFunc<GameState,GameState>>) =
+        let sideEffectList = List.ofSeq sideEffects
+        test <@ List.length sideEffectList = 1 @>
+
+        let sideEffect = List.head sideEffectList
+        let stateAfterSideEffect = sideEffect.Invoke(currentState)
+        test <@ stateAfterSideEffect.Mode = currentState.Mode @>
+        test <@ !spokenStateRef = spokenText @>
