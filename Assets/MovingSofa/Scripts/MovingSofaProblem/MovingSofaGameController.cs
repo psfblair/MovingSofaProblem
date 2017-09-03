@@ -41,7 +41,7 @@ namespace MovingSofaProblem
                     break;
                 case GameMode.Following:
                     var followingStateTransition =
-                        Following.KeepFollowing(currentGameState, Camera.main.transform, MeasureCarrier);
+                        Following.KeepFollowing(currentGameState, Camera.main.transform, MeasureMover);
                     HandleStateTransition(followingStateTransition);
                     break;
                 case GameMode.Replaying:
@@ -69,7 +69,7 @@ namespace MovingSofaProblem
                                                           , Camera.main.transform
                                                           , BoundingBoxDisabler(boundingBox)
                                                           , SpatialMappingObserverStarter
-                                                          , MeasureCarrier);
+                                                          , MeasureMover);
             HandleStateTransition(stateTransition);
         }
 
@@ -153,15 +153,6 @@ namespace MovingSofaProblem
                     measure.transform.rotation = newPositionAndRotation.Rotation;
                     return newPositionAndRotation;
                 };
-
-        private static Func<Vector3, Func<GameObject, Transform, PositionAndRotation>> MeasureCarrier =
-            positionRelativeToForward =>
-                (measure, cameraTransform) =>
-                    {
-                        var newPositionAndRotation = 
-                            SpatialCalculations.OrientationRelativeToOneUnitForward(cameraTransform, positionRelativeToForward);
-                        return MeasureMover(measure, newPositionAndRotation);
-                    };
 
         private static Func<BoundingBox, Action> BoundingBoxDisabler = box => () => box.Target = null;
 

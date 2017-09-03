@@ -13,18 +13,18 @@ module SpatialCalculationsTests =
     let forwardOneZFromUnitX = Vector(1.0f, 0.0f, 1.0f)
 
     let noRotation = Rotation(0.0f, 0.0f, 0.0f, 0.0f)
-    let ninetyDegreesAboutZ = Rotation(0.0f, 0.0f, 1.0f, 0.25f)
+    let ninetyDegreesAboutZ = Rotation(0.0f, 0.0f, 90.0f, 0.0f)
 
 
     [<Test>]
     let ``SpatialCalculations: Calculates position and orientation relative to one unit in front of the camera``() =
-        let cameraLoc = Situation(Vector(2.0f, 3.0f, 4.0f), Rotation(0.5f, 0.6f, 0.7f, 90.0f), forwardOneZFromOrigin)
+        let cameraLoc = Situation(Vector(2.0f, 3.0f, 4.0f), Rotation(90.0f, 179.0f, 270.0f, 90.0f), forwardOneZFromOrigin)
 
         // This calculation is expected to leave rotation at zero except on the y axis.
-        // For ease of testing, the Dummy euler angles just multiplies x,y,z of rotation by 360.
-        let expected = PositionAndRotation(Vector(3.0f, 3.0f, 5.0f), Rotation(0.0f, -216.0f, 0.0f, 0.0f))
+        // For ease of testing, the Dummy euler angles just takes the x, y, z of the rotation
+        let expected = PositionAndRotation(Vector(3.0f, 3.0f, 5.0f), Rotation(0.0f, -1.0f, 0.0f, 0.0f))
         
-        test <@ SpatialCalculations.OrientationRelativeToOneUnitForward(cameraLoc, unitX) = expected @>
+        test <@ SpatialCalculations.ReorientRelativeToOneUnitForwardFrom(cameraLoc, unitX) = expected @>
 
     [<Test>]
     let ``SpatialCalculations: Calculates angle in XZ plane between two segments that have no Y component``() =
@@ -123,7 +123,7 @@ module SpatialCalculationsTests =
         // Dummy Rotation angle calculation gives angle to rotate as 90 degrees with these inputs
         // Dummy Rotation Lerp just multiplies x,y,z,w all by the specified proportion.
         test <@ SpatialCalculations.InterpolatedPositionAndRotation(currentTime, startTime, translationSpeed, rotationSpeed, segment) = 
-                    PositionAndRotation(originVector, Rotation(0.0f, 0.0f, 0.5f, 0.125f)) @>
+                    PositionAndRotation(originVector, Rotation(0.0f, 0.0f, 45.0f, 0.0f)) @>
 
 
     [<Test>]
@@ -138,5 +138,5 @@ module SpatialCalculationsTests =
         // Dummy Rotation angle calculation gives angle to rotate as 90 degrees with these inputs
         // Dummy Rotation Lerp just multiplies x,y,z,w all by the specified proportion.
         test <@ SpatialCalculations.InterpolatedPositionAndRotation(currentTime, startTime, translationSpeed, rotationSpeed, segment) = 
-                    PositionAndRotation(unitX, Rotation(0.0f, 0.0f, 0.5f, 0.125f)) @>
+                    PositionAndRotation(unitX, Rotation(0.0f, 0.0f, 45.0f, 0.0f)) @>
     

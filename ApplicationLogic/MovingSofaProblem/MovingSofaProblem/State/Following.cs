@@ -35,7 +35,7 @@ namespace MovingSofaProblem.State
                                                     , Situation cameraTransform
                                                     , Action boundingBoxDisabler
                                                     , Action spatialMappingObserverStarter
-                                                    , Func<Vector, Func<Measure, Situation, PositionAndRotation>> carryMeasure)
+                                                    , Func<Measure, PositionAndRotation, PositionAndRotation> moveMeasure)
         {
             var newState = new Following(currentState, cameraTransform.position.y);
 
@@ -46,9 +46,10 @@ namespace MovingSofaProblem.State
             Func<GameState, GameState> keepMeasureInFrontOfMe =
                 state =>
                 {
-                    var newPositionAndRotation = 
-                        carryMeasure(CarryPositionRelativeToOneUnitInFrontOfCamera)(currentState.Measure, cameraTransform);
-                    state.InitialPath.Add(newPositionAndRotation.Position
+					var newPositionAndRotation =
+						SpatialCalculations.ReorientRelativeToOneUnitForwardFrom(cameraTransform, CarryPositionRelativeToOneUnitInFrontOfCamera);
+					moveMeasure(currentState.Measure, newPositionAndRotation);
+					state.InitialPath.Add(newPositionAndRotation.Position
                                          , newPositionAndRotation.Rotation
                                          , cameraTransform.position.y);
                     return state;
@@ -60,12 +61,13 @@ namespace MovingSofaProblem.State
 
         public static StateTransition KeepFollowing(GameState currentState
                                                    , Situation cameraTransform
-                                                   , Func<Vector, Func<Measure, Situation, PositionAndRotation>> carryMeasure)
-        {
-            Func<GameState, GameState> keepMeasureInFrontOfMe = state =>
+												   , Func<Measure, PositionAndRotation, PositionAndRotation> moveMeasure)
+		{
+			Func<GameState, GameState> keepMeasureInFrontOfMe = state =>
             {
-                var newPositionAndRotation = 
-                    carryMeasure(CarryPositionRelativeToOneUnitInFrontOfCamera)(currentState.Measure, cameraTransform);
+                var newPositionAndRotation =
+				    SpatialCalculations.ReorientRelativeToOneUnitForwardFrom(cameraTransform, CarryPositionRelativeToOneUnitInFrontOfCamera);
+                moveMeasure(currentState.Measure, newPositionAndRotation);
                 state.InitialPath.Add(newPositionAndRotation.Position
                                      , newPositionAndRotation.Rotation
                                      , cameraTransform.position.y);

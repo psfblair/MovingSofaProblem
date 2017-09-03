@@ -10,7 +10,7 @@ module PathSegmentTests =
     let vector1 = Vector(1.0f, 1.0f, 1.0f)
     let vector2 = Vector(2.0f, 3.0f, 4.0f)
     let noRotation = Rotation(0.0f, 0.0f, 0.0f, 0.0f)
-    let ninetyDegreesAboutZ = Rotation(0.0f, 0.0f, 1.0f, 0.25f)
+    let ninetyDegreesAboutZ = Rotation(0.0f, 0.0f, 90.0f, 0.0f)
     let cameraHeight1 = 1.0f
     let cameraHeight2 = 2.0f
     let breadcrumb1 = Breadcrumb(vector1, noRotation, cameraHeight1)
@@ -57,7 +57,7 @@ module PathSegmentTests =
     [<Test>]
     let ``PathSegment: Calculates Z axis rotation in terms of proportion of a circle``() = 
         let segment = PathSegment(breadcrumb1, breadcrumb2)  
-        test <@ segment.ZAxisRotationChange = 1.0f @>
+        test <@ segment.ZAxisRotationChange = 0.25f @>
 
     // Dummy domain gives canned values for specific rotations
     [<Test>]

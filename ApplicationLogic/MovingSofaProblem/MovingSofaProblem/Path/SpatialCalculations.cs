@@ -17,16 +17,17 @@ namespace MovingSofaProblem.Path
 {
     public static class SpatialCalculations
     {
-        internal static PositionAndRotation OrientationRelativeToOneUnitForward(Situation locationToBeInFrontOf, Vector relativePosition)
+        internal static PositionAndRotation ReorientRelativeToOneUnitForwardFrom(Situation locationToBeInFrontOf, Vector relativePosition)
         {
             // The camera transform's forward is a unit vector in world space pointing forward from the camera.
             // We just want the x and z components. So it's not exactly one unit in front (z), depending on x and y.
-            var forward = new Vector(locationToBeInFrontOf.forward.x, 0.0f, locationToBeInFrontOf.forward.z);
-            var position = locationToBeInFrontOf.position + forward + relativePosition;
+            var forwardCircaOneUnit = new Vector(locationToBeInFrontOf.forward.x, 0.0f, locationToBeInFrontOf.forward.z);
+            var position = locationToBeInFrontOf.position + forwardCircaOneUnit + relativePosition;
 
             // We want to rotate the object around the y axis only so that it keeps looking at the wearer.
             Vector locationRotation = locationToBeInFrontOf.rotation.eulerAngles;
-            Rotation rotation = Rotation.Euler(0, -locationRotation.y, 0);
+            var newYRotation = locationRotation.y - 180 > -360 ? locationRotation.y - 180 : locationRotation.y + 180;
+            Rotation rotation = Rotation.Euler(0, newYRotation, 0);
             return new PositionAndRotation(position, rotation);
         }
 

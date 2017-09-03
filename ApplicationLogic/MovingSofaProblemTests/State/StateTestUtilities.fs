@@ -16,8 +16,10 @@ module StateTestUtilities =
 (**********************************************************************************************************************)
 
     let origin = Vector(0.0f, 0.0f, 0.0f)
-    let zeroRotation = Rotation(0.0f, 0.0f, 0.0f, 0.0f)
     let forwardZ = Vector(0.0f, 0.0f, 1.0f)
+
+    let zeroRotation = Rotation(0.0f, 0.0f, 0.0f, 0.0f)
+    let facingCameraRotation = Rotation(0.0f, -180.0f, 0.0f, 0.0f)
 
     let cameraAtOrigin =
         let originPosition = origin
@@ -41,12 +43,12 @@ module StateTestUtilities =
             fun measure positionAndRotation -> measure
         )
 
-    let dummyMeasurePositioner = 
-        System.Func<Vector, System.Func<Measure, Situation, PositionAndRotation>>(
-            fun relativePosition ->
-                System.Func<Measure, Situation, PositionAndRotation>(
-                    fun measure situation -> PositionAndRotation(situation.position, situation.rotation)
-                )
+    let measurePositioner = 
+        System.Func<Measure, PositionAndRotation, PositionAndRotation>(
+            fun measure positionAndRotation -> 
+                measure.transform.position <- positionAndRotation.Position
+                measure.transform.rotation <- positionAndRotation.Rotation
+                positionAndRotation
         )
 
 (**********************************************************************************************************************)
@@ -76,7 +78,7 @@ module StateTestUtilities =
                 , cameraAtOrigin
                 , fun state -> state
                 , fun state -> state
-                , dummyMeasurePositioner
+                , measurePositioner
             ).NewState
         (afterState, snd beforeState)
 

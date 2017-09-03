@@ -33,7 +33,7 @@ namespace MovingSofaProblem.State
         {
             Func<GameState, GameState> createNewMeasure = state =>
             {
-                var newPositionAndRotation = SpatialCalculations.OrientationRelativeToOneUnitForward(cameraTransform, InitialMeasurePositionRelativeToOneUnitInFrontOfCamera);
+                var newPositionAndRotation = SpatialCalculations.ReorientRelativeToOneUnitForwardFrom(cameraTransform, InitialMeasurePositionRelativeToOneUnitInFrontOfCamera);
                 var newMeasure = measureCreator(state.Measure, newPositionAndRotation);
                 return new Measuring(state, newMeasure);
             };

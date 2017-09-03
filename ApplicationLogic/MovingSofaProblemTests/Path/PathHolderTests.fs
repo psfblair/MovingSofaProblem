@@ -234,13 +234,13 @@ module PathHolderTests =
     let ``PathHolder: Leaves a path component when there is a major rotation``() = 
         let pathHolder = PathHolder()
         pathHolder.Add(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector1,      Rotation(0.09f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector2,      Rotation(0.5f, 1.0f, 0.0f, 0.05f), cameraHeight1)
-        pathHolder.Add(vector3,      Rotation(0.5f, 1.0f, 0.09f, 0.05f), cameraHeight3)
+        pathHolder.Add(vector1,      Rotation(35.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
+        pathHolder.Add(vector2,      Rotation(37.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
+        pathHolder.Add(vector3,      Rotation(37.0f, 0.0f, 0.0f, 0.0f), cameraHeight3)
 
         let expected = PathHolder()
         expected.Add(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        expected.Add(vector2,      Rotation(0.5f, 1.0f, 0.0f, 0.05f), cameraHeight1)
-        expected.Add(vector3,      Rotation(0.5f, 1.0f, 0.09f, 0.05f), cameraHeight3)
+        expected.Add(vector2,      Rotation(37.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
+        expected.Add(vector3,      Rotation(37.0f, 0.0f, 0.0f, 0.0f), cameraHeight3)
 
         test <@ PathHolder.Simplify(pathHolder) = expected @>

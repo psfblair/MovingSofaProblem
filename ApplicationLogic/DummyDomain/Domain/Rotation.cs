@@ -17,13 +17,12 @@ namespace Domain
         public float z { get; }
         public float w { get; }
 
-		// Dummy value for ease of testing: Euler angles are the same as the
-		// x, y, z of the rotation times 360 degrees.
+		// Dummy value for ease of testing: We'll pretend Euler angles are the same as the x, y, z of the rotation.
 		public Vector eulerAngles
         {
             get
             {
-                return new Vector(x * 360.0f, y* 360.0f, z* 360.0f); // Dummy value
+                return new Vector(x, y, z);
             }
         }
 
@@ -38,11 +37,11 @@ namespace Domain
             return new Rotation(r1.x * r2.x, r1.y * r2.y, r1.z * r2.z, r1.w * r2.w);
         }
 
-        // Dummy values for ease of testing: 
 		public static float Angle(Rotation rotation1, Rotation rotation2)
         {
-            var noRotation = new Rotation(0.0f, 0.0f, 0.0f, 0.0f);
-            var ninetyDegreesAboutZ = new Rotation(0.0f, 0.0f, 1.0f, 0.25f);
+			// Dummy values for ease of testing: 
+			var noRotation = new Rotation(0.0f, 0.0f, 0.0f, 0.0f);
+            var ninetyDegreesAboutZ = new Rotation(0.0f, 0.0f, 90.0f, 0.0f);
             if(rotation1 == rotation2)
             {
                 return 0.0f;

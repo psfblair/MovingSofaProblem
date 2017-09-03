@@ -81,7 +81,7 @@ module MeasuringTests =
 
         let initialPositionRelativeToCamera = Vector(0.0f, -0.2f, 1.0f)
         test <@ newState.Measure.transform.position = initialPositionRelativeToCamera @>
-        test <@ newState.Measure.transform.rotation = StateTestUtilities.zeroRotation @>
+        test <@ newState.Measure.transform.rotation = StateTestUtilities.facingCameraRotation @>
 
 
     [<Test>]
