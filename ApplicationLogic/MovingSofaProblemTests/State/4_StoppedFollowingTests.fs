@@ -93,6 +93,15 @@ module StoppedFollowingTests =
         test <@ beforeState.PathToReplay = PathHolder() @>
 
     [<Test>]
+    let ``Has no current path step or first step``() = 
+        let (beforeState, _) = StateTestUtilities.followingState ()
+        let stateTransition = stopFollowingFrom beforeState
+
+        let stoppedFollowingState = stateTransition.NewState
+        test <@ stoppedFollowingState.CurrentPathStep = MaybePathStep.None @>
+        test <@ GameState.FirstStep(stoppedFollowingState) = MaybePathStep.None @>
+
+    [<Test>]
     let ``Has three side effects``() = 
         let (beforeState, _) = StateTestUtilities.followingState ()   
         let stateTransition = stopFollowingFrom beforeState

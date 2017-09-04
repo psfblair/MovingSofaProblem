@@ -64,7 +64,6 @@ namespace MovingSofaProblem.State
             return state;
         };
 
-        // Currying in C#!
         static public Func<string, Func<GameState, GameState>> Say = 
             somethingToSay => state => { state.statusSpeaker(somethingToSay); return state; };
 

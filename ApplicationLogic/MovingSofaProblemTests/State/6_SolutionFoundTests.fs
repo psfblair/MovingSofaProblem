@@ -10,6 +10,14 @@ open Domain
 
 module SolutionFoundTests =
 
+    let solutionSecondPosition = Vector(1.0f, 2.0f, 3.0f)
+
+    let solution () = 
+        let soln = PathHolder()
+        soln.Add(StateTestUtilities.origin, StateTestUtilities.zeroRotation, -0.2f)
+        soln.Add(solutionSecondPosition, StateTestUtilities.zeroRotation, -0.2f)
+        soln
+
     [<Test>]
     let ``Can be reached from the PathSimplified state``() = 
         let (beforeState, _) = StateTestUtilities.pathSimplifiedState ()   
@@ -43,36 +51,41 @@ module SolutionFoundTests =
 
     [<Test>]
     let ``Initializes the SolutionFound state with the supplied solution``() = 
-        let (beforeState, _) = StateTestUtilities.pathSimplifiedState ()
+        let (pathSimplifiedState, _) = StateTestUtilities.pathSimplifiedState ()
+        StateTestUtilities.setInitialPathAndMeasurePosition pathSimplifiedState
+        pathSimplifiedState.PathToReplay <- pathSimplifiedState.InitialPath
 
-        let pathSimplifiedReplayPath = PathHolder()
-        pathSimplifiedReplayPath.Add(StateTestUtilities.origin, StateTestUtilities.zeroRotation, -0.2f)
-        pathSimplifiedReplayPath.Add(Vector(1.0f, 0.0f, 3.0f), StateTestUtilities.zeroRotation, -0.2f)
-        pathSimplifiedReplayPath.Add(Vector(6.0f, 0.0f, 3.0f), StateTestUtilities.zeroRotation, -0.2f)
-        beforeState.PathToReplay <- pathSimplifiedReplayPath
+        let solutionFoundState = SolutionFound.HasFoundSolution(pathSimplifiedState, solution ())
 
-        let solution = PathHolder()
-        solution.Add(StateTestUtilities.origin, StateTestUtilities.zeroRotation, 0.0f)
-        solution.Add(Vector(1.0f, 2.0f, 3.0f), StateTestUtilities.zeroRotation, 2.0f)
-        let newState = SolutionFound.HasFoundSolution(beforeState, solution)
-
-        test <@ newState.PathToReplay = solution @>
+        test <@ solutionFoundState.PathToReplay = solution () @>
 
     [<Test>]
     let ``Does not change the initial path``() = 
-        let (beforeState, _) = StateTestUtilities.pathSimplifiedState ()
+        let (pathSimplifiedState, _) = StateTestUtilities.pathSimplifiedState ()
+        StateTestUtilities.setInitialPathAndMeasurePosition pathSimplifiedState
 
-        let pathSimplifiedInitialPath = PathHolder()
-        pathSimplifiedInitialPath.Add(StateTestUtilities.origin, StateTestUtilities.zeroRotation, -0.2f)
-        pathSimplifiedInitialPath.Add(Vector(1.0f, 0.0f, 3.0f), StateTestUtilities.zeroRotation, -0.2f)
-        pathSimplifiedInitialPath.Add(Vector(6.0f, 0.0f, 3.0f), StateTestUtilities.zeroRotation, -0.2f)
-        beforeState.InitialPath <- pathSimplifiedInitialPath
+        let solutionFoundState = SolutionFound.HasFoundSolution(pathSimplifiedState, solution ())
 
-        let solution = PathHolder()
-        solution.Add(StateTestUtilities.origin, StateTestUtilities.zeroRotation, 0.0f)
-        solution.Add(Vector(1.0f, 2.0f, 3.0f), StateTestUtilities.zeroRotation, 2.0f)
-        let newState = SolutionFound.HasFoundSolution(beforeState, solution)
+        test <@ solutionFoundState.InitialPath = pathSimplifiedState.InitialPath @>
 
-        test <@ newState.InitialPath = beforeState.InitialPath @>
+    [<Test>]
+    let ``First step is first step of solution``() = 
+        let (pathSimplifiedState, _) = StateTestUtilities.pathSimplifiedState ()
+        StateTestUtilities.setInitialPathAndMeasurePosition pathSimplifiedState
 
+        let solutionFoundState = SolutionFound.HasFoundSolution(pathSimplifiedState, solution ())
+
+        test <@ GameState.FirstStep(solutionFoundState).Value.StartNode.Value = 
+                    Breadcrumb(StateTestUtilities.origin, StateTestUtilities.zeroRotation, -0.2f) @>
+        test <@ GameState.FirstStep(solutionFoundState).Value.EndNode.Value = 
+                    Breadcrumb(solutionSecondPosition, StateTestUtilities.zeroRotation, -0.2f) @>
+
+    [<Test>]
+    let ``Has no current path step``() = 
+        let (pathSimplifiedState, _) = StateTestUtilities.pathSimplifiedState ()
+        StateTestUtilities.setInitialPathAndMeasurePosition pathSimplifiedState
+
+        let solutionFoundState = SolutionFound.HasFoundSolution(pathSimplifiedState, solution ())
+
+        test <@ solutionFoundState.CurrentPathStep = MaybePathStep.None @>
 

@@ -43,48 +43,57 @@ module PathSimplifiedTests =
 
         let newState = stateTransition.NewState
         test <@ newState.Mode = GameMode.PathSimplified @>
-
+    
     [<Test>]
-    let ``Initializes the initial path with the point at which the measure was dropped``() = 
+    let ``Initializes the initial path with simplified path ending in the point at which the measure was dropped``() = 
         let stoppedFollowingState = StateTestUtilities.stoppedFollowingState () |> fst
+        StateTestUtilities.setInitialPathAndMeasurePosition stoppedFollowingState
 
-        let positionWhenStopped = Vector(1.0f, 2.0f, 3.0f)
-        let stoppedFollowingInitialPath = PathHolder()
-        stoppedFollowingInitialPath.Add(StateTestUtilities.origin, StateTestUtilities.zeroRotation, -0.2f)
-        stoppedFollowingInitialPath.Add(positionWhenStopped, StateTestUtilities.zeroRotation, -0.2f)
-        stoppedFollowingState.InitialPath <- stoppedFollowingInitialPath
-
-        let positionWhenDropped = Vector(3.0f, 4.0f, 5.0f)
-        stoppedFollowingState.Measure.transform.position <- positionWhenDropped
         let pathSimplifiedState = (simplifyPathFrom stoppedFollowingState).NewState
 
         let expectedInitialPath = PathHolder()
         expectedInitialPath.Add(StateTestUtilities.origin, StateTestUtilities.zeroRotation, -0.2f)
-        expectedInitialPath.Add(positionWhenStopped, StateTestUtilities.zeroRotation, -0.2f)
-        expectedInitialPath.Add(positionWhenDropped, StateTestUtilities.zeroRotation, -0.2f)
+        expectedInitialPath.Add(StateTestUtilities.measurePositionAfterDropped
+                               , StateTestUtilities.zeroRotation
+                               , -0.2f)
 
         test <@ pathSimplifiedState.InitialPath = expectedInitialPath @>
 
     [<Test>]
     let ``Initializes the path to replay with the simplified initial path``() = 
         let stoppedFollowingState = StateTestUtilities.stoppedFollowingState () |> fst
+        StateTestUtilities.setInitialPathAndMeasurePosition stoppedFollowingState
 
-        let stoppedFollowingInitialPath = PathHolder()
-        stoppedFollowingInitialPath.Add(StateTestUtilities.origin, StateTestUtilities.zeroRotation, -0.2f)
-        stoppedFollowingInitialPath.Add(Vector(1.0f, 0.0f, 1.0f), StateTestUtilities.zeroRotation, -0.2f)
-        stoppedFollowingInitialPath.Add(Vector(2.0f, 0.0f, 2.0f), StateTestUtilities.zeroRotation, -0.2f)
-        stoppedFollowingInitialPath.Add(Vector(3.0f, 0.0f, 3.0f), StateTestUtilities.zeroRotation, -0.2f)
-        stoppedFollowingState.InitialPath <- stoppedFollowingInitialPath
-
-        let positionAfterDropped = Vector(4.0f, 0.0f, 4.0f)
-        stoppedFollowingState.Measure.transform.position <- positionAfterDropped
         let pathSimplifiedState = (simplifyPathFrom stoppedFollowingState).NewState
 
         let expectedPathToReplay = PathHolder()
         expectedPathToReplay.Add(StateTestUtilities.origin, StateTestUtilities.zeroRotation, -0.2f)
-        expectedPathToReplay.Add(positionAfterDropped, StateTestUtilities.zeroRotation, -0.2f)
+        expectedPathToReplay.Add(StateTestUtilities.measurePositionAfterDropped
+                                , StateTestUtilities.zeroRotation
+                                , -0.2f)
 
         test <@ pathSimplifiedState.PathToReplay = expectedPathToReplay @>
+
+    [<Test>]
+    let ``First step is first step of simplified path``() = 
+        let stoppedFollowingState = StateTestUtilities.stoppedFollowingState () |> fst
+        StateTestUtilities.setInitialPathAndMeasurePosition stoppedFollowingState
+
+        let pathSimplifiedState = (simplifyPathFrom stoppedFollowingState).NewState
+        test <@ GameState.FirstStep(pathSimplifiedState).Value.StartNode.Value = 
+                    Breadcrumb(StateTestUtilities.origin, StateTestUtilities.zeroRotation, -0.2f) @>
+        test <@ GameState.FirstStep(pathSimplifiedState).Value.EndNode.Value = 
+                    Breadcrumb(StateTestUtilities.measurePositionAfterDropped
+                              , StateTestUtilities.zeroRotation
+                              , -0.2f) @>
+
+    [<Test>]
+    let ``Has no current path step``() = 
+        let stoppedFollowingState = StateTestUtilities.stoppedFollowingState () |> fst
+        StateTestUtilities.setInitialPathAndMeasurePosition stoppedFollowingState
+
+        let pathSimplifiedState = (simplifyPathFrom stoppedFollowingState).NewState
+        test <@ pathSimplifiedState.CurrentPathStep = MaybePathStep.None @>
 
     [<Test>]
     let ``Has two side effects``() = 

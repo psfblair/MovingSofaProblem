@@ -45,30 +45,29 @@ module FollowingTests =
 
     [<Test>]
     let ``Initializes initial path to measure's position and camera's Y``() = 
-        let (startingState, _) = StateTestUtilities.initialState ()
-        startingState.Measure.transform.position <- Vector(5.0f, 4.0f, 3.0f)
-
-        let cameraPosition = Situation(Vector(2.0f, 0.2f, 1.0f), StateTestUtilities.zeroRotation, StateTestUtilities.forwardZ)
-
-        let stateTransition = 
-            Following.StartFollowing(
-                  startingState
-                , cameraPosition
-                , fun state -> state
-                , fun state -> state
-                , StateTestUtilities.measurePositioner
-            )
+        let (beforeState, _) = StateTestUtilities.measuringState ()
+        beforeState.Measure.transform.position <- Vector(5.0f, 4.0f, 3.0f)
+        let stateTransition = startFollowingFrom beforeState
 
         let stateAfterTransition = stateTransition.NewState
         let initialPath = stateAfterTransition.InitialPath.path |> List.ofSeq
 
         test <@ List.length initialPath = 1 @>
-        test <@ List.head initialPath = Breadcrumb(Vector(5.0f, 4.0f, 3.0f), StateTestUtilities.zeroRotation, 0.2f) @>
+        test <@ List.head initialPath = Breadcrumb(Vector(5.0f, 4.0f, 3.0f), StateTestUtilities.zeroRotation, 0.0f) @>
+
+    [<Test>]
+    let ``Has no current path step or first step``() = 
+        let (beforeState, _) = StateTestUtilities.measuringState ()
+        let stateTransition = startFollowingFrom beforeState
+
+        let followingState = stateTransition.NewState
+        test <@ followingState.CurrentPathStep = MaybePathStep.None @>
+        test <@ GameState.FirstStep(followingState) = MaybePathStep.None @>
 
     [<Test>]
     let ``Has four side effects``() = 
-        let (startingState, _) = StateTestUtilities.initialState ()  
-        let stateTransition = startFollowingFrom startingState
+        let (beforeState, _) = StateTestUtilities.measuringState ()  
+        let stateTransition = startFollowingFrom beforeState
         let sideEffects = stateTransition.SideEffects |> List.ofSeq
 
         test <@ List.length sideEffects = 4 @>
@@ -79,7 +78,7 @@ module FollowingTests =
 
         let stateTransition = 
             Following.StartFollowing(
-                  StateTestUtilities.initialState () |> fst
+                  StateTestUtilities.measuringState () |> fst
                 , StateTestUtilities.cameraAtOrigin
                 , fun state -> boundingBoxDisabled <- true; state
                 , fun state -> state
@@ -99,7 +98,7 @@ module FollowingTests =
 
         let stateTransition = 
             Following.StartFollowing(
-                  StateTestUtilities.initialState () |> fst
+                  StateTestUtilities.measuringState () |> fst
                 , StateTestUtilities.cameraAtOrigin
                 , fun state -> state
                 , fun state -> spatialMappingObserverStarted <- true; state
@@ -118,7 +117,7 @@ module FollowingTests =
 
         let stateTransition = 
             Following.StartFollowing(
-                  StateTestUtilities.initialState () |> fst
+                  StateTestUtilities.measuringState () |> fst
                 , StateTestUtilities.cameraAtOrigin
                 , fun state -> state
                 , fun state -> state
@@ -143,11 +142,11 @@ module FollowingTests =
 
     [<Test>]
     let ``Speaks the state in the fourth side effect``() = 
-        let (startingState, spokenStateRef) = StateTestUtilities.initialState () 
+        let (measuringState, spokenStateRef) = StateTestUtilities.measuringState () 
 
         let stateTransition = 
             Following.StartFollowing(
-                  startingState
+                  measuringState
                 , StateTestUtilities.cameraAtOrigin
                 , fun state -> state
                 , fun state -> state
@@ -196,11 +195,11 @@ module FollowingTests =
 
     [<Test>]
     let ``Can tell you what state you are in``() = 
-        let (startingState, spokenStateRef) = StateTestUtilities.initialState () 
+        let (beforeState, spokenStateRef) = StateTestUtilities.measuringState () 
 
         let followingState = 
             Following.StartFollowing(
-                  startingState
+                  beforeState
                 , StateTestUtilities.cameraAtOrigin
                 , fun state -> state
                 , fun state -> state

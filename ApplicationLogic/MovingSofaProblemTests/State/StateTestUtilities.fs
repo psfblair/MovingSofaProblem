@@ -33,6 +33,16 @@ module StateTestUtilities =
         let situation = Situation(position, rotation, forwardZ)
         Measure(situation)
 
+    let measurePositionAfterDropped = Vector(4.0f, 0.0f, 4.0f)
+
+    let initialPathWhenStoppedFollowing () = 
+        let path = PathHolder()
+        path.Add(origin, zeroRotation, -0.2f)
+        path.Add(Vector(1.0f, 0.0f, 1.0f), zeroRotation, -0.2f)
+        path.Add(Vector(2.0f, 0.0f, 2.0f), zeroRotation, -0.2f)
+        path.Add(Vector(3.0f, 0.0f, 3.0f), zeroRotation, -0.2f)
+        path
+
 
 (**********************************************************************************************************************)
 (************************************************* DUMMY SIDE EFFECTS *************************************************)
@@ -101,6 +111,14 @@ module StateTestUtilities =
                 , fun state -> state
             ).NewState
         (afterState, spokenStateRef)
+
+(**********************************************************************************************************************)
+(************************************************* STATE INITIALIZERS *************************************************)
+(**********************************************************************************************************************)
+
+    let setInitialPathAndMeasurePosition (state: GameState) =
+        state.InitialPath <- initialPathWhenStoppedFollowing ()
+        state.Measure.transform.position <- measurePositionAfterDropped
 
 (**********************************************************************************************************************)
 (************************************************* COMPLEX ASSERTIONS *************************************************)
