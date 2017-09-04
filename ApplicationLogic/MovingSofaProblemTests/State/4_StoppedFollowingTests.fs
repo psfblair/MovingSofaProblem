@@ -116,7 +116,6 @@ module StoppedFollowingTests =
         let (beforeState, _) = StateTestUtilities.followingState ()   
         let stateTransition = stopFollowingFrom beforeState
 
-        let newState = stateTransition.NewState
         let sideEffects = stateTransition.SideEffects |> List.ofSeq
         test <@ List.length sideEffects = 3 @>
 

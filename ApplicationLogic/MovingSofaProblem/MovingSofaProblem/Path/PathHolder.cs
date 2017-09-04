@@ -20,7 +20,7 @@ namespace MovingSofaProblem.Path
         {
         }
 
-        private PathHolder(LinkedList<Breadcrumb> path)
+        internal PathHolder(LinkedList<Breadcrumb> path)
         {
             this.path = path;
         }

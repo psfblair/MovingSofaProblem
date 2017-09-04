@@ -98,7 +98,6 @@ module PathSimplifiedTests =
         let (beforeState, _) = StateTestUtilities.followingState ()   
         let stateTransition = simplifyPathFrom beforeState
 
-        let newState = stateTransition.NewState
         let sideEffects = stateTransition.SideEffects |> List.ofSeq
         test <@ List.length sideEffects = 3 @>
 

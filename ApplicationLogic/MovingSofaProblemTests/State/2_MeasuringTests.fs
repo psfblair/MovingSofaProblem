@@ -82,6 +82,14 @@ module MeasuringTests =
         test <@ GameState.FirstStep(state) = MaybePathStep.None @>
 
     [<Test>]
+    let ``Has two side effects``() = 
+        let (beforeState, _) = StateTestUtilities.initialState ()  
+        let stateTransition = startMeasuringFrom beforeState
+        let sideEffects = stateTransition.SideEffects |> List.ofSeq
+
+        test <@ List.length sideEffects = 2 @>
+
+    [<Test>]
     let ``Creates a measure and transitions to the Measuring state in the first side effect``() = 
         let (startingState, _) = StateTestUtilities.initialState ()
         let measureCreator = 
