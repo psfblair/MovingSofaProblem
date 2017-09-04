@@ -175,13 +175,9 @@ module StoppedFollowingTests =
     [<Test>]
     let ``Can tell you what state you are in``() = 
         let (beforeState, spokenStateRef) = StateTestUtilities.followingState ()
-        let stateTransition = stopFollowingFrom beforeState
-        let stopFollowingState = stateTransition.NewState
+        let stopFollowingState = (stopFollowingFrom beforeState).NewState
 
-        let sideEffects = GameState.SayStatus(stopFollowingState) |> List.ofSeq 
-        test <@ List.length sideEffects = 1 @>
+        let expectedSpokenState = "Right now I have stopped following you and am simplifying the route."
 
-        let newState = (List.head sideEffects).Invoke(stopFollowingState)
-
-        test <@ newState = stopFollowingState @>
-        test <@ !spokenStateRef = "Right now I have stopped following you and am simplifying the route." @>
+        GameState.SayStatus(stopFollowingState) 
+            |> StateTestUtilities.testSingleSideEffectSpeaks expectedSpokenState spokenStateRef stopFollowingState

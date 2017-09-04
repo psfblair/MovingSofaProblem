@@ -143,13 +143,9 @@ module PathSimplifiedTests =
     [<Test>]
     let ``Can tell you what state you are in``() = 
         let (beforeState, spokenStateRef) = StateTestUtilities.stoppedFollowingState ()   
-        let stateTransition = simplifyPathFrom beforeState
-        let pathSimplifiedState = stateTransition.NewState
+        let pathSimplifiedState = (simplifyPathFrom beforeState).NewState
 
-        let sideEffects = GameState.SayStatus(pathSimplifiedState) |> List.ofSeq 
-        test <@ List.length sideEffects = 1 @>
+        let expectedSpokenState = "Right now I have simplified the path and am figuring out a solution."
 
-        let newState = (List.head sideEffects).Invoke(pathSimplifiedState)
-
-        test <@ newState = pathSimplifiedState @>
-        test <@ !spokenStateRef = "Right now I have simplified the path and am figuring out a solution." @>
+        GameState.SayStatus(pathSimplifiedState) 
+            |> StateTestUtilities.testSingleSideEffectSpeaks expectedSpokenState spokenStateRef pathSimplifiedState

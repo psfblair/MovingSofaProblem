@@ -128,3 +128,12 @@ module WaitingToReplayTests =
         test <@ stateAfterSideEffect.Mode = GameMode.WaitingToReplay @>
 
         test <@ !spokenStateRef = "Replaying the solution. Say 'Next' to replay the next step." @>
+
+    [<Test>]
+    let ``Can tell you what state you are in``() = 
+        let (solutionFoundState, spokenStateRef) = StateTestUtilities.solutionFoundState ()
+        let waitingToReplayState = WaitingToReplay.StartReplaying(solutionFoundState).NewState
+
+        let expectedSpokenState = "Right now I am ready to replay the solution. You can Say 'Next' to replay the next step."
+        GameState.SayStatus(waitingToReplayState) 
+            |> StateTestUtilities.testSingleSideEffectSpeaks expectedSpokenState spokenStateRef waitingToReplayState

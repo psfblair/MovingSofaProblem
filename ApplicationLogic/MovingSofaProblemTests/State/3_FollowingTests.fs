@@ -202,21 +202,11 @@ module FollowingTests =
     [<Test>]
     let ``Can tell you what state you are in``() = 
         let (beforeState, spokenStateRef) = StateTestUtilities.measuringState () 
+        let followingState = (startFollowingFrom beforeState).NewState
 
-        let followingState = 
-            Following.StartFollowing(
-                  beforeState
-                , StateTestUtilities.cameraAtOrigin
-                , fun state -> state
-                , fun state -> state
-                , StateTestUtilities.measurePositioner
-            ).NewState
+        let expectedSpokenState = 
+            "Right now I am following you. You can " + 
+            "Say 'Put it down' when you have arrived at the place where you want to move the object."
 
-        let sideEffects = GameState.SayStatus(followingState) |> List.ofSeq 
-        test <@ List.length sideEffects = 1 @>
-
-        let newState = (List.head sideEffects).Invoke(followingState)
-        test <@ newState = followingState @>
-
-        test <@ !spokenStateRef = "Right now I am following you. You can " + 
-                "Say 'Put it down' when you have arrived at the place where you want to move the object." @>
+        GameState.SayStatus(followingState) 
+            |> StateTestUtilities.testSingleSideEffectSpeaks expectedSpokenState spokenStateRef followingState

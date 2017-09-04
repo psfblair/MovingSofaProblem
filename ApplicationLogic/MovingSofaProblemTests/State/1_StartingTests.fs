@@ -34,14 +34,10 @@ module StartingTests =
 
     [<Test>]
     let ``Can tell you what state you are in``() = 
-        let mutable spokenState = ""
-        let startingTransition = Starting.Start(fun text -> spokenState <- text)
+        let spokenStateRef = ref ""
+        let startingTransition = Starting.Start(fun text -> spokenStateRef := text)
         let startingState = startingTransition.NewState
 
-        let sideEffects = GameState.SayStatus(startingState) |> List.ofSeq 
-        test <@ List.length sideEffects = 1 @>
-
-        let newState = (List.head sideEffects).Invoke(startingState)
-        test <@ newState = startingState @>
-
-        test <@ spokenState = "Right now I am starting." @>
+        let expectedSpokenState = "Right now I am starting."
+        GameState.SayStatus(startingState) 
+            |> StateTestUtilities.testSingleSideEffectSpeaks expectedSpokenState spokenStateRef startingState

@@ -131,12 +131,10 @@ module MeasuringTests =
     let ``Can tell you what state you are in``() = 
         let (measuringState, spokenStateRef) = StateTestUtilities.measuringState ()
 
-        let sayStatusSideEffects = GameState.SayStatus(measuringState) |> List.ofSeq
-        test <@ List.length sayStatusSideEffects = 1 @>
+        let expectedSpokenState = 
+            "Right now I can measure an object that you select. You can " +
+            "Say 'Come with me' when you have finished and are ready to " + 
+            "indicate where you want to move the object."
 
-        let newState = (List.head sayStatusSideEffects).Invoke(measuringState)
-        test <@ newState = measuringState @>
-        test <@ !spokenStateRef = 
-                    "Right now I can measure an object that you select. You can " +
-                    "Say 'Come with me' when you have finished and are ready to " + 
-                    "indicate where you want to move the object."     @>
+        GameState.SayStatus(measuringState) 
+            |> StateTestUtilities.testSingleSideEffectSpeaks expectedSpokenState spokenStateRef measuringState
