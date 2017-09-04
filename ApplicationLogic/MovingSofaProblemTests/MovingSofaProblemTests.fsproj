@@ -108,6 +108,8 @@
     <Compile Include="State\4_StoppedFollowingTests.fs" />
     <Compile Include="State\5_PathSimplifiedTests.fs" />
     <Compile Include="State\6_SolutionFoundTests.fs" />
+    <Compile Include="State\7_WaitingToReplayTests.fs" />
+    <Compile Include="State\8_ReplayingTests.fs" />
     <None Include="packages.config" />
   </ItemGroup>
 </Project>

@@ -41,6 +41,12 @@ module PathSimplifiedTests =
         let (beforeState, _) = StateTestUtilities.solutionFoundState ()   
         let stateTransition = simplifyPathFrom beforeState
         test <@ stateTransition.NewState.Mode = GameMode.PathSimplified @>
+
+    [<Test>]
+    let ``Can be reached from the WaitingToReplay state``() = 
+        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
+        let stateTransition = simplifyPathFrom beforeState
+        test <@ stateTransition.NewState.Mode = GameMode.PathSimplified @>
     
     [<Test>]
     let ``Initializes the initial path with simplified path ending in the point at which the measure was dropped``() = 

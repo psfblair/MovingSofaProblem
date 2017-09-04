@@ -127,6 +127,11 @@ module StateTestUtilities =
         let afterState = SolutionFound.HasFoundSolution(beforeState, solution ())
         (afterState, spokenStateRef)
 
+    let waitingToReplayState () =
+        let (beforeState, spokenStateRef) = solutionFoundState ()
+        let afterState = WaitingToReplay.StartReplaying(beforeState).NewState
+        (afterState, spokenStateRef)
+
 (**********************************************************************************************************************)
 (************************************************* STATE INITIALIZERS *************************************************)
 (**********************************************************************************************************************)

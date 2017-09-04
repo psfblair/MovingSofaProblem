@@ -73,6 +73,17 @@ module StoppedFollowingTests =
             |> StateTestUtilities.testSingleSideEffectSpeaks invalidTransitionMessage spokenStateRef newState
 
     [<Test>]
+    let ``Cannot be reached from the WaitingToReplay state``() = 
+        let (waitingToReplayState, spokenStateRef) = StateTestUtilities.waitingToReplayState ()   
+        let stateTransition = stopFollowingFrom waitingToReplayState
+
+        let newState = stateTransition.NewState
+        test <@ newState.Mode = GameMode.WaitingToReplay @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidTransitionMessage spokenStateRef newState
+
+    [<Test>]
     let ``Initializes the initial path with the point at which it stopped following``() = 
         let positionWhenStopped = Vector(1.0f, 2.0f, 3.0f)
         let (beforeState, _) = StateTestUtilities.followingState ()
