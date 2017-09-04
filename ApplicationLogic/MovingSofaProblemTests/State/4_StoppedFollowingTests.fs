@@ -84,6 +84,17 @@ module StoppedFollowingTests =
             |> StateTestUtilities.testSingleSideEffectSpeaks invalidTransitionMessage spokenStateRef newState
 
     [<Test>]
+    let ``Cannot be reached from the Replaying state``() = 
+        let (replayingState, spokenStateRef) = StateTestUtilities.replayingState ()   
+        let stateTransition = stopFollowingFrom replayingState
+
+        let newState = stateTransition.NewState
+        test <@ newState.Mode = GameMode.Replaying @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidTransitionMessage spokenStateRef newState
+
+    [<Test>]
     let ``Initializes the initial path with the point at which it stopped following``() = 
         let positionWhenStopped = Vector(1.0f, 2.0f, 3.0f)
         let (beforeState, _) = StateTestUtilities.followingState ()

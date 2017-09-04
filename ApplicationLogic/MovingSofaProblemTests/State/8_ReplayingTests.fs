@@ -21,7 +21,7 @@ module ReplayingTests =
         let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
         let replayingState = Replaying.ReplayCurrentSegment(beforeState, 0.0f).NewState
         test <@ replayingState.Mode = GameMode.Replaying @>
-(*
+
     [<Test>]
     let ``Can play next segment from the Replaying state``() = 
         let (beforeState, _) = StateTestUtilities.replayingState ()   
@@ -33,7 +33,7 @@ module ReplayingTests =
         let (beforeState, _) = StateTestUtilities.replayingState ()   
         let replayingState = Replaying.ReplayCurrentSegment(beforeState, 0.0f).NewState
         test <@ replayingState.Mode = GameMode.Replaying @>
-
+(*
     [<Test>]
     let ``Cannot play the next segment from the Replaying state``() = 
         let (beforeState, _) = StateTestUtilities.finishedReplayingState ()   

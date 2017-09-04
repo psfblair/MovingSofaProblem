@@ -48,6 +48,12 @@ module SolutionFoundTests =
         test <@ newState.Mode = GameMode.WaitingToReplay @>
 
     [<Test>]
+    let ``Cannot be reached from the Replaying state``() = 
+        let (beforeState, _) = StateTestUtilities.replayingState ()   
+        let newState = SolutionFound.HasFoundSolution(beforeState, PathHolder())
+        test <@ newState.Mode = GameMode.Replaying @>
+
+    [<Test>]
     let ``Initializes the SolutionFound state with the supplied solution``() = 
         let (pathSimplifiedState, _) = StateTestUtilities.pathSimplifiedState ()
         StateTestUtilities.setInitialPathAndMeasurePosition pathSimplifiedState

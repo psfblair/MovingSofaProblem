@@ -56,6 +56,12 @@ module FollowingTests =
         test <@ stateTransition.NewState.Mode = GameMode.Following @>
 
     [<Test>]
+    let ``Can be reached from the Replaying state``() = 
+        let (replayingState, _) = StateTestUtilities.replayingState ()   
+        let stateTransition = startFollowingFrom replayingState
+        test <@ stateTransition.NewState.Mode = GameMode.Following @>
+
+    [<Test>]
     let ``Initializes initial path to measure's position and camera's Y``() = 
         let (beforeState, _) = StateTestUtilities.measuringState ()
         beforeState.Measure.transform.position <- Vector(5.0f, 4.0f, 3.0f)

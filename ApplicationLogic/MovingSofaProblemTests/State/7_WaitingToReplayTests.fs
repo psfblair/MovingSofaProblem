@@ -22,6 +22,12 @@ module WaitingToReplayTests =
         let newState = WaitingToReplay.StartReplaying(beforeState).NewState
         test <@ newState.Mode = GameMode.WaitingToReplay @>
 
+    [<Test>]
+    let ``Can be reached from the Replaying state``() = 
+        let (beforeState, _) = StateTestUtilities.replayingState ()   
+        let newState = WaitingToReplay.StartReplaying(beforeState).NewState
+        test <@ newState.Mode = GameMode.WaitingToReplay @>
+
     let invalidTransitionMessage = "I can't replay the solution because I have no solution to replay."
 
     [<Test>]
