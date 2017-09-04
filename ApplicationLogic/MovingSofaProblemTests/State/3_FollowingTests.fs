@@ -37,7 +37,11 @@ module FollowingTests =
         let stateTransition = startFollowingFrom stoppedFollowingState
         test <@ stateTransition.NewState.Mode = GameMode.Following @>
 
-    // TODO other states you can reach Following from
+    [<Test>]
+    let ``Can be reached from the PathSimplified state``() = 
+        let (pathSimplifiedState, _) = StateTestUtilities.pathSimplifiedState ()      
+        let stateTransition = startFollowingFrom pathSimplifiedState
+        test <@ stateTransition.NewState.Mode = GameMode.Following @>
 
     [<Test>]
     let ``Initializes initial path to measure's position and camera's Y``() = 

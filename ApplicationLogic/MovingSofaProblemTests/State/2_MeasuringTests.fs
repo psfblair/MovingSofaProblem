@@ -48,6 +48,16 @@ module MeasuringTests =
         test <@ newState.Mode = GameMode.Measuring @>
 
     [<Test>]
+    let ``Can be reached from the PathSimplified state``() = 
+        let (pathSimplifiedState, _) = StateTestUtilities.pathSimplifiedState ()      
+        let stateTransition = startMeasuringFrom pathSimplifiedState
+        test <@ stateTransition.NewState.Mode = GameMode.PathSimplified @>
+
+        let firstSideEffect = stateTransition.SideEffects |> List.ofSeq |> List.head
+        let newState = firstSideEffect.Invoke(stateTransition.NewState)
+        test <@ newState.Mode = GameMode.Measuring @>
+
+    [<Test>]
     let ``Initializes the Measuring state``() = 
         let (startingState, _) = StateTestUtilities.initialState ()
         let startMeasuringStateTransition = startMeasuringFrom startingState

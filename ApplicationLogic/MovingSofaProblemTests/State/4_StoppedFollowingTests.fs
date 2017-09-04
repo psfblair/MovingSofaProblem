@@ -38,7 +38,6 @@ module StoppedFollowingTests =
             |> StateTestUtilities.testSingleSideEffectSpeaks 
                 "I can't put it down because I'm not carrying anything right now." spokenStateRef newState
 
-
     [<Test>]
     let ``Cannot be reached from the Measuring state``() = 
         let (measuringState, spokenStateRef) = StateTestUtilities.measuringState ()    
@@ -50,6 +49,48 @@ module StoppedFollowingTests =
         stateTransition.SideEffects 
             |> StateTestUtilities.testSingleSideEffectSpeaks 
                 "I can't put it down because I'm not carrying anything right now." spokenStateRef newState
+
+    [<Test>]
+    let ``Cannot be reached from the PathSimplified state``() = 
+        let (pathSimplifiedState, spokenStateRef) = StateTestUtilities.pathSimplifiedState ()    
+        let stateTransition = stopFollowingFrom pathSimplifiedState
+
+        let newState = stateTransition.NewState
+        test <@ newState.Mode = GameMode.PathSimplified @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks 
+                "I can't put it down because I'm not carrying anything right now." spokenStateRef newState
+
+    [<Test>]
+    let ``Initializes the initial path with the point at which it stopped following``() = 
+        let positionWhenStopped = Vector(1.0f, 2.0f, 3.0f)
+        let (beforeState, _) = StateTestUtilities.followingState ()
+        beforeState.Measure.transform.position <- positionWhenStopped
+
+        let expectedPathBeforeStopped = PathHolder()
+        expectedPathBeforeStopped.Add(StateTestUtilities.origin, StateTestUtilities.zeroRotation, 0.0f)
+
+        test <@ beforeState.InitialPath = expectedPathBeforeStopped @>
+
+        let newState = (stopFollowingFrom beforeState).NewState
+
+        let expectedInitialPath = PathHolder()
+        expectedInitialPath.Add(StateTestUtilities.origin, StateTestUtilities.zeroRotation, 0.0f)
+        expectedInitialPath.Add(positionWhenStopped, StateTestUtilities.zeroRotation, 0.0f)
+          
+        test <@ newState.InitialPath = expectedInitialPath @>
+
+    [<Test>]
+    let ``Does not initialize the path to replay``() = 
+        let positionWhenStopped = Vector(1.0f, 2.0f, 3.0f)
+        let (beforeState, _) = StateTestUtilities.followingState ()
+        beforeState.Measure.transform.position <- positionWhenStopped
+
+        test <@ beforeState.PathToReplay = PathHolder() @>
+
+        let newState = (stopFollowingFrom beforeState).NewState
+        test <@ beforeState.PathToReplay = PathHolder() @>
 
     [<Test>]
     let ``Has three side effects``() = 

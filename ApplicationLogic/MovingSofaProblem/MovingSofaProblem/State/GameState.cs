@@ -44,16 +44,15 @@ namespace MovingSofaProblem.State
         }
 
         public GameMode   Mode                  { get; protected set; }
-        public PathHolder InitialPath           { get; protected set; }
+        public PathHolder InitialPath           { get; internal set; }
         public Option<PathStep> CurrentPathStep { get; protected set; }
         public float SegmentReplayStartTime     { get; protected set; }
         public Measure Measure               { get; protected set; }
 
-
         public abstract string SayableStateDescription { get;  }
         public abstract string SayableStatus { get; }
 
-        protected PathHolder PathToReplay { get; set; }
+        internal PathHolder PathToReplay { get; set; }
         internal static Option<PathStep> FirstStep(GameState state)
         {
             return PathHolder.FirstStep(state.PathToReplay);

@@ -28,7 +28,8 @@ namespace MovingSofaProblem.State
             var newState = new PathSimplified(priorState, simplifiedPath);
 
             Func<GameState, GameState> findSolution = state => {
-                var solution = solutionFinder(state.InitialPath);
+				// TODO Do AI/search here
+				var solution = solutionFinder(state.InitialPath);
                 return SolutionFound.HasFoundSolution(state, solution);
             };
 

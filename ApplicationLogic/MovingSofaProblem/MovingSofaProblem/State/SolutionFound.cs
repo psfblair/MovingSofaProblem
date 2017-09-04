@@ -10,15 +10,18 @@ namespace MovingSofaProblem.State
 
         private SolutionFound(GameState priorState) : base(GameMode.SolutionFound, priorState) { }
 
-        internal static SolutionFound HasFoundSolution(GameState priorState, PathHolder solution)
+        internal static GameState HasFoundSolution(GameState priorState, PathHolder solution)
         {
-            // TODO Do AI/search here
-            // Redo the initial path with colliders against the room mesh, find all the places where it touches
-            // Then try to solve those. Also can't be raised above the person's head too far.
+            if(priorState.Mode != GameMode.PathSimplified) 
+            {
+                return priorState;
+            }
 
-            // TODO Save path to text asset
+            // TODO Save solution to text asset
 
-            return new SolutionFound(priorState);
+            var newState = new SolutionFound(priorState);
+            newState.PathToReplay = solution;
+            return newState;
         }
     }
 }

@@ -61,37 +61,46 @@ module StateTestUtilities =
         (startingTransition.NewState, spokenState)
 
     let measuringState () = 
-        let beforeState = initialState ()
+        let (beforeState, spokenStateRef) = initialState ()
         let stateTransition =
-            Measuring.StartMeasuring(fst beforeState, cameraAtOrigin, dummyMeasureCreator)
+            Measuring.StartMeasuring(beforeState, cameraAtOrigin, dummyMeasureCreator)
 
         let measureCreatingSideEffect = stateTransition.SideEffects |> List.ofSeq |>  List.head 
         let measuringState = measureCreatingSideEffect.Invoke(stateTransition.NewState)
 
-        (measuringState, snd beforeState)
+        (measuringState, spokenStateRef)
 
     let followingState () = 
-        let beforeState = measuringState ()
+        let (beforeState, spokenStateRef) = measuringState ()
         let afterState =
             Following.StartFollowing(
-                fst beforeState
+                beforeState
                 , cameraAtOrigin
                 , fun state -> state
                 , fun state -> state
                 , measurePositioner
             ).NewState
-        (afterState, snd beforeState)
+        (afterState, spokenStateRef)
 
     let stoppedFollowingState () =
-        let beforeState = followingState ()
+        let (beforeState, spokenStateRef) = followingState ()
         let afterState =
             StoppedFollowing.StopFollowing(
-                fst beforeState
+                beforeState
                 , cameraAtOrigin
                 , fun gameObject -> ()
                 , fun state -> state
             ).NewState
-        (afterState, snd beforeState)
+        (afterState, spokenStateRef)
+
+    let pathSimplifiedState () =
+        let (beforeState, spokenStateRef) = stoppedFollowingState ()
+        let afterState = 
+            PathSimplified.SimplifyPath(
+                beforeState
+                , fun state -> state
+            ).NewState
+        (afterState, spokenStateRef)
 
 (**********************************************************************************************************************)
 (************************************************* COMPLEX ASSERTIONS *************************************************)
