@@ -89,3 +89,15 @@ module SolutionFoundTests =
 
         test <@ solutionFoundState.CurrentPathStep = MaybePathStep.None @>
 
+    [<Test>]
+    let ``Can tell you what state you are in``() = 
+        let (pathSimplifiedState, spokenStateRef) = StateTestUtilities.pathSimplifiedState ()
+        let solutionFoundState = SolutionFound.HasFoundSolution(pathSimplifiedState, solution ())
+
+        let sideEffects = GameState.SayStatus(solutionFoundState) |> List.ofSeq 
+        test <@ List.length sideEffects = 1 @>
+
+        let newState = (List.head sideEffects).Invoke(solutionFoundState)
+
+        test <@ newState = solutionFoundState @>
+        test <@ !spokenStateRef = "Right now I have figured out a solution. You can Say 'Replay solution' to see it." @>

@@ -96,13 +96,13 @@ module PathSimplifiedTests =
         test <@ pathSimplifiedState.CurrentPathStep = MaybePathStep.None @>
 
     [<Test>]
-    let ``Has two side effects``() = 
+    let ``Has three side effects``() = 
         let (beforeState, _) = StateTestUtilities.followingState ()   
         let stateTransition = simplifyPathFrom beforeState
 
         let newState = stateTransition.NewState
         let sideEffects = stateTransition.SideEffects |> List.ofSeq
-        test <@ List.length sideEffects = 2 @>
+        test <@ List.length sideEffects = 3 @>
 
     [<Test>]
     let ``Speaks the state in the first side effect``() = 
@@ -128,6 +128,20 @@ module PathSimplifiedTests =
 
         test <@ solutionFinderCalled = true @>
         test <@ stateAfterSideEffect.Mode = GameMode.SolutionFound @>
+
+    [<Test>]
+    let ``Speaks the new state in the third side effect``() = 
+        let (beforeState, spokenStateRef) = StateTestUtilities.followingState ()
+        let stateTransition = simplifyPathFrom beforeState
+
+        let newState = stateTransition.NewState
+        let stateChangingSideEffect = stateTransition.SideEffects |> List.ofSeq |> List.item 1
+        let stateAfterSideEffect = stateChangingSideEffect.Invoke(newState)
+
+        let secondSpeakingSideEffect = stateTransition.SideEffects |> List.ofSeq |> List.item 2
+        let stateAfterSideEffect = secondSpeakingSideEffect.Invoke(stateAfterSideEffect)
+
+        test <@ !spokenStateRef = "Finished figuring out a solution. Say 'Replay solution' to see it." @>
 
     [<Test>]
     let ``Can tell you what state you are in``() = 

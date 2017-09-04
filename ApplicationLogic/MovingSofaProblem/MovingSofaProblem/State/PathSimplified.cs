@@ -35,7 +35,7 @@ namespace MovingSofaProblem.State
 
 			// TODO Stop spinner as side effect
 
-			var sideEffects = ToList(GameState.SayState, findSolution);
+			var sideEffects = ToList(GameState.SayState, findSolution, GameState.SayState);
             return new StateTransition(newState, sideEffects);
         }
     }
