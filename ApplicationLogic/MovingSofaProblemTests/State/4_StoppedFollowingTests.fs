@@ -26,6 +26,8 @@ module StoppedFollowingTests =
         let newState = stateTransition.NewState
         test <@ newState.Mode = GameMode.StoppedFollowing @>
 
+    let invalidTransitionMessage = "I can't put it down because I'm not carrying anything right now."
+
     [<Test>]
     let ``Cannot be reached from the Starting state``() = 
         let (startingState, spokenStateRef) = StateTestUtilities.initialState ()   
@@ -35,8 +37,7 @@ module StoppedFollowingTests =
         test <@ newState.Mode = GameMode.Starting @>
 
         stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks 
-                "I can't put it down because I'm not carrying anything right now." spokenStateRef newState
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidTransitionMessage spokenStateRef newState
 
     [<Test>]
     let ``Cannot be reached from the Measuring state``() = 
@@ -47,8 +48,7 @@ module StoppedFollowingTests =
         test <@ newState.Mode = GameMode.Measuring @>
 
         stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks 
-                "I can't put it down because I'm not carrying anything right now." spokenStateRef newState
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidTransitionMessage spokenStateRef newState
 
     [<Test>]
     let ``Cannot be reached from the PathSimplified state``() = 
@@ -59,8 +59,7 @@ module StoppedFollowingTests =
         test <@ newState.Mode = GameMode.PathSimplified @>
 
         stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks 
-                "I can't put it down because I'm not carrying anything right now." spokenStateRef newState
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidTransitionMessage spokenStateRef newState
 
     [<Test>]
     let ``Cannot be reached from the SolutionFound state``() = 
@@ -71,8 +70,7 @@ module StoppedFollowingTests =
         test <@ newState.Mode = GameMode.SolutionFound @>
 
         stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks 
-                "I can't put it down because I'm not carrying anything right now." spokenStateRef newState
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidTransitionMessage spokenStateRef newState
 
     [<Test>]
     let ``Initializes the initial path with the point at which it stopped following``() = 
