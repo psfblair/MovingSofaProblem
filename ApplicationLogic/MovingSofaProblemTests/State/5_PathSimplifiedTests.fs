@@ -16,33 +16,31 @@ module PathSimplifiedTests =
     let ``Can be reached from the StoppedFollowing state``() = 
         let (beforeState, _) = StateTestUtilities.stoppedFollowingState ()   
         let stateTransition = simplifyPathFrom beforeState
-
-        let newState = stateTransition.NewState
-        test <@ newState.Mode = GameMode.PathSimplified @>
+        test <@ stateTransition.NewState.Mode = GameMode.PathSimplified @>
 
     [<Test>]
     let ``Can be reached from the Starting state``() = 
         let (beforeState, _) = StateTestUtilities.initialState ()   
         let stateTransition = simplifyPathFrom beforeState
-
-        let newState = stateTransition.NewState
-        test <@ newState.Mode = GameMode.PathSimplified @>
+        test <@ stateTransition.NewState.Mode = GameMode.PathSimplified @>
 
     [<Test>]
     let ``Can be reached from the Measuring state``() = 
         let (beforeState, _) = StateTestUtilities.measuringState ()   
         let stateTransition = simplifyPathFrom beforeState
-
-        let newState = stateTransition.NewState
-        test <@ newState.Mode = GameMode.PathSimplified @>
+        test <@ stateTransition.NewState.Mode = GameMode.PathSimplified @>
 
     [<Test>]
     let ``Can be reached from the Following state``() = 
         let (beforeState, _) = StateTestUtilities.followingState ()   
         let stateTransition = simplifyPathFrom beforeState
+        test <@ stateTransition.NewState.Mode = GameMode.PathSimplified @>
 
-        let newState = stateTransition.NewState
-        test <@ newState.Mode = GameMode.PathSimplified @>
+    [<Test>]
+    let ``Can be reached from the SolutionFound state``() = 
+        let (beforeState, _) = StateTestUtilities.solutionFoundState ()   
+        let stateTransition = simplifyPathFrom beforeState
+        test <@ stateTransition.NewState.Mode = GameMode.PathSimplified @>
     
     [<Test>]
     let ``Initializes the initial path with simplified path ending in the point at which the measure was dropped``() = 

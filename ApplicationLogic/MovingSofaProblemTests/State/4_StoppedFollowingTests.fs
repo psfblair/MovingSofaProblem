@@ -63,6 +63,18 @@ module StoppedFollowingTests =
                 "I can't put it down because I'm not carrying anything right now." spokenStateRef newState
 
     [<Test>]
+    let ``Cannot be reached from the SolutionFound state``() = 
+        let (solutionFoundState, spokenStateRef) = StateTestUtilities.solutionFoundState ()   
+        let stateTransition = stopFollowingFrom solutionFoundState
+
+        let newState = stateTransition.NewState
+        test <@ newState.Mode = GameMode.SolutionFound @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks 
+                "I can't put it down because I'm not carrying anything right now." spokenStateRef newState
+
+    [<Test>]
     let ``Initializes the initial path with the point at which it stopped following``() = 
         let positionWhenStopped = Vector(1.0f, 2.0f, 3.0f)
         let (beforeState, _) = StateTestUtilities.followingState ()

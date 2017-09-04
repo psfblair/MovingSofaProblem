@@ -58,6 +58,17 @@ module MeasuringTests =
         test <@ newState.Mode = GameMode.Measuring @>
 
     [<Test>]
+    let ``Can be reached from the SolutionFound state``() = 
+        let (solutionFoundState, _) = StateTestUtilities.solutionFoundState ()   
+        let stateTransition = startMeasuringFrom solutionFoundState
+        test <@ stateTransition.NewState.Mode = GameMode.SolutionFound @>
+
+        let firstSideEffect = stateTransition.SideEffects |> List.ofSeq |> List.head
+        let newState = firstSideEffect.Invoke(stateTransition.NewState)
+
+        test <@ newState.Mode = GameMode.Measuring @>
+
+    [<Test>]
     let ``Initializes the Measuring state``() = 
         let (startingState, _) = StateTestUtilities.initialState ()
         let startMeasuringStateTransition = startMeasuringFrom startingState

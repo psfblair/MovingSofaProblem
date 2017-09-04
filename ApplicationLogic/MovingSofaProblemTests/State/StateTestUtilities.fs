@@ -43,6 +43,16 @@ module StateTestUtilities =
         path.Add(Vector(3.0f, 0.0f, 3.0f), zeroRotation, -0.2f)
         path
 
+    let solutionSecondPosition = Vector(1.0f, 2.0f, 3.0f)
+    let solutionThirdPosition = Vector(5.0f, 2.0f, 7.0f)
+
+    let solution () = 
+        let soln = PathHolder()
+        soln.Add(origin, zeroRotation, -0.2f)
+        soln.Add(solutionSecondPosition, zeroRotation, -0.2f)
+        soln.Add(solutionThirdPosition, zeroRotation, -0.2f)
+        soln
+
 
 (**********************************************************************************************************************)
 (************************************************* DUMMY SIDE EFFECTS *************************************************)
@@ -110,6 +120,11 @@ module StateTestUtilities =
                 beforeState
                 , fun state -> state
             ).NewState
+        (afterState, spokenStateRef)
+
+    let solutionFoundState () =
+        let (beforeState, spokenStateRef) = pathSimplifiedState ()
+        let afterState = SolutionFound.HasFoundSolution(beforeState, solution ())
         (afterState, spokenStateRef)
 
 (**********************************************************************************************************************)
