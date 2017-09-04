@@ -183,6 +183,68 @@ module ReplayingTests =
             |> StateTestUtilities.testSingleSideEffectSpeaks invalidReplayStepMessage spokenStateRef replayingState
 
     [<Test>]
+    let ``Playing the next segment has no immediate side effects``() = 
+        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
+        let sideEffects = Replaying.PlayNextSegment(beforeState, 0.0f).SideEffects
+        test <@ sideEffects.Count = 0 @>
+
+    [<Test>]
+    let ``Replaying the current segment has no immediate side effects``() = 
+        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
+        let sideEffects = Replaying.ReplayCurrentSegment(beforeState, 0.0f).SideEffects
+        test <@ sideEffects.Count = 0 @>
+
+    [<Test>]
+    let ``Playing the next segment changes no paths in the state``() = 
+        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
+        let replayingState = Replaying.PlayNextSegment(beforeState, 0.0f).NewState
+
+        test <@ replayingState.PathToReplay = beforeState.PathToReplay @>
+        test <@ replayingState.InitialPath = beforeState.InitialPath @>
+        test <@ Replaying.FirstStep(replayingState) = WaitingToReplay.FirstStep(beforeState) @>
+        test <@ replayingState.Measure.transform.position = beforeState.Measure.transform.position @>
+        test <@ replayingState.Measure.transform.rotation = beforeState.Measure.transform.rotation @>
+
+    [<Test>]
+    let ``Replaying the current segment changes no paths in the state``() = 
+        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
+        let replayingState = Replaying.ReplayCurrentSegment(beforeState, 0.0f).NewState
+
+        test <@ replayingState.PathToReplay = beforeState.PathToReplay @>
+        test <@ replayingState.InitialPath = beforeState.InitialPath @>
+        test <@ Replaying.FirstStep(replayingState) = WaitingToReplay.FirstStep(beforeState) @>
+        test <@ replayingState.Measure.transform.position = beforeState.Measure.transform.position @>
+        test <@ replayingState.Measure.transform.rotation = beforeState.Measure.transform.rotation @>
+
+    [<Test>]
+    let ``Playing the first segment does not change the state's current step'``() = 
+        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
+        let replayingState = Replaying.PlayNextSegment(beforeState, 0.0f).NewState
+        test <@ replayingState.CurrentPathStep = beforeState.CurrentPathStep @>
+
+    [<Test>]
+    let ``Playing the next segment advances the state's current step'``() = 
+        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
+        let replayingState = Replaying.PlayNextSegment(beforeState, 0.0f).NewState
+        let nextReplayingState = Replaying.PlayNextSegment(replayingState, 0.0f).NewState
+        test <@ nextReplayingState.CurrentPathStep <> beforeState.CurrentPathStep @>
+        test <@ nextReplayingState.CurrentPathStep.Value.StartNode =
+                 beforeState.CurrentPathStep.Value.EndNode @>
+
+    [<Test>]
+    let ``Replaying the first segment does not change the current step``() = 
+        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
+        let replayingState = Replaying.ReplayCurrentSegment(beforeState, 0.0f).NewState
+        test <@ replayingState.CurrentPathStep = beforeState.CurrentPathStep @>
+
+    [<Test>]
+    let ``Replaying the current segment does not change the current step``() = 
+        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
+        let replayingState = Replaying.PlayNextSegment(beforeState, 0.0f).NewState
+        let replayingCurrentState = Replaying.ReplayCurrentSegment(replayingState, 0.0f).NewState
+        test <@ replayingCurrentState.CurrentPathStep = replayingState.CurrentPathStep @>
+
+    [<Test>]
     let ``Can tell you what state you are in``() = 
         let (beforeState, spokenStateRef) = StateTestUtilities.waitingToReplayState ()
         let replayingState = Replaying.ReplayCurrentSegment(beforeState, 0.0f).NewState
