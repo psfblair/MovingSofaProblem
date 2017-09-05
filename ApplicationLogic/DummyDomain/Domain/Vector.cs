@@ -33,10 +33,15 @@ namespace Domain
 
         public static Vector Lerp(Vector initialPosition, Vector finalPosition, float proportionOfTranslationComplete)
         {
-            Func<float, float, float, float> proportionateDistance = (initial, final, proportion) => (final - initial) * proportion;
-            return new Vector(proportionateDistance(initialPosition.x, finalPosition.x, proportionOfTranslationComplete),
-                              proportionateDistance(initialPosition.y, finalPosition.y, proportionOfTranslationComplete),
-                              proportionateDistance(initialPosition.z, finalPosition.z, proportionOfTranslationComplete));
+			// Clamp the value the way Unity does.
+			proportionOfTranslationComplete = 
+                proportionOfTranslationComplete > 1.0f ? 1.0f : proportionOfTranslationComplete;
+			Func<float, float, float, float> proportionateDistance = (initial, final, proportion) => (final - initial) * proportion;
+            return new Vector(
+                initialPosition.x + proportionateDistance(initialPosition.x, finalPosition.x, proportionOfTranslationComplete),
+                initialPosition.y + proportionateDistance(initialPosition.y, finalPosition.y, proportionOfTranslationComplete),
+                initialPosition.z + proportionateDistance(initialPosition.z, finalPosition.z, proportionOfTranslationComplete)
+            );
         }
 
         public static float Distance(Vector position1, Vector position2)

@@ -42,6 +42,7 @@ namespace Domain
 			// Dummy values for ease of testing: 
 			var noRotation = new Rotation(0.0f, 0.0f, 0.0f, 0.0f);
             var ninetyDegreesAboutZ = new Rotation(0.0f, 0.0f, 90.0f, 0.0f);
+            var ninetyDegreesAboutZAnd180AboutY = new Rotation(0.0f, 180.0f, 90.0f, 0.0f);
             if(rotation1 == rotation2)
             {
                 return 0.0f;
@@ -50,7 +51,11 @@ namespace Domain
             {
                 return 90.0f;
             }
-            throw new NotSupportedException("Only specific rotations have a dummy calculation. Rotations given were: " +
+			if (rotation1 == ninetyDegreesAboutZ && rotation2 == ninetyDegreesAboutZAnd180AboutY)
+			{
+				return 180.0f;
+			}
+			throw new NotSupportedException("Only specific rotations have a dummy calculation. Rotations given were: " +
                                             rotation1 + " and " + rotation2);
         }
 
@@ -61,15 +66,18 @@ namespace Domain
             return new Rotation(heading, attitude, bank, 0.0f);
         }
 
-		// Dummy value for ease of testing: Take proportion of differences of x,y,z,w
+		// Dummy value for ease of testing: Take proportion of differences of x,y,z,w. Make sure to clamp.
 		public static Rotation Lerp(Rotation initialRotation, Rotation finalRotation, float proportionOfRotationComplete)
         {
+            // Clamp the value the way Unity does.
+            proportionOfRotationComplete = 
+                proportionOfRotationComplete > 1.0f ? 1.0f : proportionOfRotationComplete;
             Func<float, float, float, float> proportionateDistance = (initial, final, proportion) => (final - initial) * proportion;
             return new Rotation(
-                proportionateDistance(initialRotation.x, finalRotation.x, proportionOfRotationComplete),
-                proportionateDistance(initialRotation.y, finalRotation.y, proportionOfRotationComplete),
-                proportionateDistance(initialRotation.z, finalRotation.z, proportionOfRotationComplete),
-                proportionateDistance(initialRotation.w, finalRotation.w, proportionOfRotationComplete)
+                initialRotation.x + proportionateDistance(initialRotation.x, finalRotation.x, proportionOfRotationComplete),
+                initialRotation.y + proportionateDistance(initialRotation.y, finalRotation.y, proportionOfRotationComplete),
+                initialRotation.z + proportionateDistance(initialRotation.z, finalRotation.z, proportionOfRotationComplete),
+                initialRotation.w + proportionateDistance(initialRotation.w, finalRotation.w, proportionOfRotationComplete)
             );
         }
 

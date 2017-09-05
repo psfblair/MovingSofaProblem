@@ -20,6 +20,7 @@ module StateTestUtilities =
 
     let zeroRotation = Rotation(0.0f, 0.0f, 0.0f, 0.0f)
     let facingCameraRotation = Rotation(0.0f, -180.0f, 0.0f, 0.0f)
+    let ninetyDegreesAroundZ = Rotation(0.0f, 0.0f, 90.0f, 0.0f)
 
     let cameraAtOrigin =
         let originPosition = origin
@@ -43,14 +44,15 @@ module StateTestUtilities =
         path.Add(Vector(3.0f, 0.0f, 3.0f), zeroRotation, -0.2f)
         path
 
-    let solutionSecondPosition = Vector(1.0f, 2.0f, 3.0f)
-    let solutionThirdPosition = Vector(5.0f, 2.0f, 7.0f)
+    let solutionSecondPosition = Vector(1.0f, 2.0f, 3.0f) // Distance from origin: 3.741657
+    let solutionThirdPosition = Vector(5.0f, 2.0f, 7.0f)  // Distance from #2: 5.65685
+    let solutionThirdRotation = Rotation(0.0f, 180.0f, 90.0f, 0.0f)
 
     let solution () = 
         let soln = PathHolder()
         soln.Add(origin, zeroRotation, -0.2f)
-        soln.Add(solutionSecondPosition, zeroRotation, -0.2f)
-        soln.Add(solutionThirdPosition, zeroRotation, -0.2f)
+        soln.Add(solutionSecondPosition, ninetyDegreesAroundZ, -0.2f)
+        soln.Add(solutionThirdPosition, solutionThirdRotation, -0.2f)
         soln
 
 

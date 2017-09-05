@@ -86,7 +86,7 @@ module SolutionFoundTests =
                     Breadcrumb(StateTestUtilities.origin, StateTestUtilities.zeroRotation, -0.2f) @>
         test <@ GameState.FirstStep(solutionFoundState).Value.EndNode.Value = 
                     Breadcrumb(StateTestUtilities.solutionSecondPosition
-                              , StateTestUtilities.zeroRotation
+                              , StateTestUtilities.ninetyDegreesAroundZ
                               , -0.2f) @>
 
     [<Test>]
