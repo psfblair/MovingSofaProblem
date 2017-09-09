@@ -53,6 +53,12 @@ module PathSimplifiedTests =
         let (beforeState, _) = StateTestUtilities.replayingState ()   
         let stateTransition = simplifyPathFrom beforeState
         test <@ stateTransition.NewState.Mode = GameMode.PathSimplified @>
+
+    [<Test>]
+    let ``Can be reached from the FinishedReplaying state``() = 
+        let (finishedReplayingState, _) = StateTestUtilities.finishedReplayingState ()   
+        let stateTransition = simplifyPathFrom finishedReplayingState
+        test <@ stateTransition.NewState.Mode = GameMode.PathSimplified @>
     
     [<Test>]
     let ``Initializes the initial path with simplified path ending in the point at which the measure was dropped``() = 
@@ -126,7 +132,7 @@ module PathSimplifiedTests =
         test <@ !spokenStateRef = "Path simplified. Finding solution." @>
 
     [<Test>]
-    let ``Starts finding the solution in the second side effect``() = 
+    let ``Starts finding the solution and then transitions to SolutionFound in the second side effect``() = 
         let mutable solutionFinderCalled = false
         let (beforeState, _) = StateTestUtilities.followingState ()
         let stateTransition = PathSimplified.SimplifyPath(beforeState, fun state -> solutionFinderCalled <- true; state)

@@ -110,6 +110,7 @@
     <Compile Include="State\6_SolutionFoundTests.fs" />
     <Compile Include="State\7_WaitingToReplayTests.fs" />
     <Compile Include="State\8_ReplayingTests.fs" />
+    <Compile Include="State\9_FinishedReplayingTests.fs" />
     <None Include="packages.config" />
   </ItemGroup>
 </Project>

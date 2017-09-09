@@ -75,6 +75,12 @@ module WaitingToReplayTests =
             |> StateTestUtilities.testSingleSideEffectSpeaks invalidTransitionMessage spokenStateRef newState
 
     [<Test>]
+    let ``Can be reached from the FinishedReplaying state``() = 
+        let (finishedReplayingState, _) = StateTestUtilities.finishedReplayingState ()   
+        let stateTransition = WaitingToReplay.StartReplaying(finishedReplayingState)
+        test <@ stateTransition.NewState.Mode = GameMode.WaitingToReplay @>
+
+    [<Test>]
     let ``Cannot be reached if the solution has no first step``() = 
         let (beforeState, spokenStateRef) = StateTestUtilities.solutionFoundState ()   
         let emptySolution = PathHolder()

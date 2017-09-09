@@ -10,7 +10,9 @@ namespace MovingSofaProblem.State
 
         private SolutionFound(GameState priorState) : base(GameMode.SolutionFound, priorState) { }
 
-        internal static GameState HasFoundSolution(GameState priorState, PathHolder solution)
+		// This is a degenerate transition method in that it doesn't return a state transition; 
+        // only PathSimplified calls it, transitioning to it in side effects.
+		internal static GameState HasFoundSolution(GameState priorState, PathHolder solution)
         {
             if(priorState.Mode != GameMode.PathSimplified) 
             {

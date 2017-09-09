@@ -139,6 +139,11 @@ module StateTestUtilities =
         let afterState = Replaying.PlayNextSegment(beforeState, 0.0f).NewState
         (afterState, spokenStateRef)
 
+    let finishedReplayingState () =
+        let (beforeState, spokenStateRef) = replayingState ()
+        let afterState = FinishedReplaying.IsFinishedReplaying(beforeState)
+        (afterState, spokenStateRef)
+
 (**********************************************************************************************************************)
 (************************************************* STATE INITIALIZERS *************************************************)
 (**********************************************************************************************************************)

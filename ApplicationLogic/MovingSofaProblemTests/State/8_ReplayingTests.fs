@@ -40,19 +40,12 @@ module ReplayingTests =
         let replayingState = 
             Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner).NewState
         test <@ replayingState.Mode = GameMode.Replaying @>
-(*
-    [<Test>]
-    let ``Cannot play the next segment from the FinishedReplaying state``() = 
-        let (beforeState, _) = StateTestUtilities.finishedReplayingState ()   
-        let replayingState = Replaying.PlayNextSegment(beforeState, 0.0f).NewState
-        test <@ replayingState.Mode = GameMode.FinishedReplaying @>
-        failwith "Need to indicate that the segment can't be replayed"
 
     [<Test>]
     let ``Can replay the current segment from the FinishedReplaying state``() = 
         let (beforeState, _) = StateTestUtilities.finishedReplayingState ()   
         let replayingState = Replaying.ReplayCurrentSegment(beforeState, 0.0f).NewState
-        test <@ replayingState.Mode = GameMode.FinishedReplaying @>
+        test <@ replayingState.Mode = GameMode.Replaying @>
 
     [<Test>]
     let ``Cannot move along the current segment from the FinishedReplaying state``() = 
@@ -63,7 +56,6 @@ module ReplayingTests =
         test <@ replayingState.Mode = GameMode.FinishedReplaying @>
         test <@ stateTransition.SideEffects.Count = 0 @>
 
-*)
     let invalidNextSegmentMessage = "I can't replay the solution because I have no solution to replay."
     let invalidReplayStepMessage = "I can't replay the current step because I currently don't have a step to replay."
 
@@ -263,6 +255,18 @@ module ReplayingTests =
         test <@ stateTransition.SideEffects.Count = 0 @>
 
     [<Test>]
+    let ``Cannot play the next segment from the FinishedReplaying state``() = 
+        let (beforeState, spokenStateRef) = StateTestUtilities.finishedReplayingState ()   
+        let stateTransition = Replaying.PlayNextSegment(beforeState, 0.0f)
+
+        let newState = stateTransition.NewState
+        test <@ newState.Mode = GameMode.FinishedReplaying @>
+
+        let endOfPathMessage = "You're at the end of the path."
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks endOfPathMessage spokenStateRef newState
+
+    [<Test>]
     let ``Playing the next segment has no immediate side effects``() = 
         let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
         let sideEffects = Replaying.PlayNextSegment(beforeState, 0.0f).SideEffects
@@ -322,6 +326,32 @@ module ReplayingTests =
         test <@ nextReplayingState.CurrentPathStep <> beforeState.CurrentPathStep @>
         test <@ nextReplayingState.CurrentPathStep.Value.StartNode =
                  beforeState.CurrentPathStep.Value.EndNode @>
+
+    [<Test>]
+    let ``Playing the last segment transitions to the FinishedReplaying state'``() = 
+        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
+        let replayingFirstSegmentState = Replaying.PlayNextSegment(beforeState, 0.0f).NewState
+        let replayingSecondSegmentState = 
+            Replaying.PlayNextSegment(replayingFirstSegmentState, 0.0f).NewState
+        let tryingToReplayAfterLastSegmentState = 
+            Replaying.PlayNextSegment(replayingSecondSegmentState, 0.0f).NewState
+        test <@ tryingToReplayAfterLastSegmentState.Mode = GameMode.FinishedReplaying @>
+
+    [<Test>]
+    let ``Replaying the last segment remains in the Replaying state'``() = 
+        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
+        let replayingFirstSegmentState = Replaying.PlayNextSegment(beforeState, 0.0f).NewState
+        let replayingSecondSegmentState = 
+            Replaying.PlayNextSegment(replayingFirstSegmentState, 0.0f).NewState
+        let replayingSecondSegmentStateAgain =
+            Replaying.ReplayCurrentSegment(replayingSecondSegmentState, 0.0f).NewState
+        test <@ replayingSecondSegmentStateAgain.Mode = GameMode.Replaying @>
+
+        let tryingToReplayAfterLastSegmentState = 
+            Replaying.PlayNextSegment(replayingSecondSegmentState, 0.0f).NewState
+        let replayingWhenFinished =
+            Replaying.ReplayCurrentSegment(tryingToReplayAfterLastSegmentState, 0.0f).NewState
+        test <@ replayingWhenFinished.Mode = GameMode.Replaying @>
 
     [<Test>]
     let ``Replaying the first segment does not change the current step``() = 

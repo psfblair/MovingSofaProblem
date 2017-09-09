@@ -91,6 +91,17 @@ module MeasuringTests =
         test <@ newState.Mode = GameMode.Measuring @>
 
     [<Test>]
+    let ``Can be reached from the FinishedReplaying state``() = 
+        let (beforeState, _) = StateTestUtilities.finishedReplayingState ()   
+        let stateTransition = startMeasuringFrom beforeState
+        test <@ stateTransition.NewState.Mode = GameMode.FinishedReplaying @>
+
+        let firstSideEffect = stateTransition.SideEffects |> List.ofSeq |> List.head
+        let newState = firstSideEffect.Invoke(stateTransition.NewState)
+
+        test <@ newState.Mode = GameMode.Measuring @>
+
+    [<Test>]
     let ``Initializes the Measuring state``() = 
         let (startingState, _) = StateTestUtilities.initialState ()
         let startMeasuringStateTransition = startMeasuringFrom startingState

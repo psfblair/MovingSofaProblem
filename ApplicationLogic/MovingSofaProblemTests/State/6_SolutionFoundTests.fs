@@ -54,6 +54,12 @@ module SolutionFoundTests =
         test <@ newState.Mode = GameMode.Replaying @>
 
     [<Test>]
+    let ``Cannot be reached from the FinishedReplaying state``() = 
+        let (finishedReplayingState, _) = StateTestUtilities.finishedReplayingState ()   
+        let newState = SolutionFound.HasFoundSolution(finishedReplayingState, PathHolder())
+        test <@ newState.Mode = GameMode.FinishedReplaying @>
+
+    [<Test>]
     let ``Initializes the SolutionFound state with the supplied solution``() = 
         let (pathSimplifiedState, _) = StateTestUtilities.pathSimplifiedState ()
         StateTestUtilities.setInitialPathAndMeasurePosition pathSimplifiedState
