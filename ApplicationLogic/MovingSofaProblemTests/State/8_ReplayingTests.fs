@@ -2,269 +2,12 @@
 
 open NUnit.Framework
 open Swensen.Unquote
-open MovingSofaProblemTests.Types
 
 open MovingSofaProblem.Path
 open MovingSofaProblem.State
 open Domain
 
 module ReplayingTests =
-
-    [<Test>]
-    let ``Can play next segment from the WaitingToReplay state``() = 
-        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
-        let replayingState = Replaying.PlayNextSegment(beforeState, 0.0f).NewState
-        test <@ replayingState.Mode = GameMode.Replaying @>
-
-    [<Test>]
-    let ``Can replay the current segment from the WaitingToReplay state``() = 
-        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
-        let replayingState = Replaying.ReplayCurrentSegment(beforeState, 0.0f).NewState
-        test <@ replayingState.Mode = GameMode.Replaying @>
-
-    [<Test>]
-    let ``Can play next segment from the Replaying state``() = 
-        let (beforeState, _) = StateTestUtilities.replayingState ()   
-        let replayingState = Replaying.PlayNextSegment(beforeState, 0.0f).NewState
-        test <@ replayingState.Mode = GameMode.Replaying @>
-
-    [<Test>]
-    let ``Can replay the current segment from the Replaying state``() = 
-        let (beforeState, _) = StateTestUtilities.replayingState ()   
-        let replayingState = Replaying.ReplayCurrentSegment(beforeState, 0.0f).NewState
-        test <@ replayingState.Mode = GameMode.Replaying @>
-
-    [<Test>]
-    let ``Can move along the current segment from the Replaying state``() = 
-        let (beforeState, _) = StateTestUtilities.replayingState ()   
-        let replayingState = 
-            Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner).NewState
-        test <@ replayingState.Mode = GameMode.Replaying @>
-
-    [<Test>]
-    let ``Can replay the current segment from the FinishedReplaying state``() = 
-        let (beforeState, _) = StateTestUtilities.finishedReplayingState ()   
-        let replayingState = Replaying.ReplayCurrentSegment(beforeState, 0.0f).NewState
-        test <@ replayingState.Mode = GameMode.Replaying @>
-
-    [<Test>]
-    let ``Cannot move along the current segment from the FinishedReplaying state``() = 
-        let (beforeState, _) = StateTestUtilities.finishedReplayingState ()   
-        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.FinishedReplaying @>
-        test <@ stateTransition.SideEffects.Count = 0 @>
-
-    let invalidNextSegmentMessage = "I can't replay the solution because I have no solution to replay."
-    let invalidReplayStepMessage = "I can't replay the current step because I currently don't have a step to replay."
-
-    [<Test>]
-    let ``Cannot play the next segment from the Starting state``() = 
-        let (beforeState, spokenStateRef) = StateTestUtilities.initialState ()   
-        let stateTransition = Replaying.PlayNextSegment(beforeState, 0.0f)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.Starting @>
-
-        stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks invalidNextSegmentMessage spokenStateRef replayingState
-
-    [<Test>]
-    let ``Cannot replay the current segment from the Starting state``() = 
-        let (beforeState, spokenStateRef) = StateTestUtilities.initialState ()   
-        let stateTransition = Replaying.ReplayCurrentSegment(beforeState, 0.0f)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.Starting @>
-
-        stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks invalidReplayStepMessage spokenStateRef replayingState
-
-    [<Test>]
-    let ``Cannot move along the current segment from the Starting state``() = 
-        let (beforeState, _) = StateTestUtilities.initialState ()   
-        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.Starting @>
-        test <@ stateTransition.SideEffects.Count = 0 @>
-
-    [<Test>]
-    let ``Cannot play the next segment from the Measuring state``() = 
-        let (beforeState, spokenStateRef) = StateTestUtilities.measuringState ()   
-        let stateTransition = Replaying.PlayNextSegment(beforeState, 0.0f)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.Measuring @>
-
-        stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks invalidNextSegmentMessage spokenStateRef replayingState
-
-    [<Test>]
-    let ``Cannot replay the current segment from the Measuring state``() = 
-        let (beforeState, spokenStateRef) = StateTestUtilities.measuringState ()   
-        let stateTransition = Replaying.ReplayCurrentSegment(beforeState, 0.0f)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.Measuring @>
-
-        stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks invalidReplayStepMessage spokenStateRef replayingState
-
-    [<Test>]
-    let ``Cannot move along the current segment from the Measuring state``() = 
-        let (beforeState, _) = StateTestUtilities.measuringState ()   
-        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.Measuring @>
-        test <@ stateTransition.SideEffects.Count = 0 @>
-
-    [<Test>]
-    let ``Cannot play the next segment from the Following state``() = 
-        let (beforeState, spokenStateRef) = StateTestUtilities.followingState ()   
-        let stateTransition = Replaying.PlayNextSegment(beforeState, 0.0f)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.Following @>
-
-        stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks invalidNextSegmentMessage spokenStateRef replayingState
-
-    [<Test>]
-    let ``Cannot replay the current segment from the Following state``() = 
-        let (beforeState, spokenStateRef) = StateTestUtilities.followingState ()   
-        let stateTransition = Replaying.ReplayCurrentSegment(beforeState, 0.0f)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.Following @>
-
-        stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks invalidReplayStepMessage spokenStateRef replayingState
-
-    [<Test>]
-    let ``Cannot move along the current segment from the Following state``() = 
-        let (beforeState, _) = StateTestUtilities.followingState ()   
-        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.Following @>
-        test <@ stateTransition.SideEffects.Count = 0 @>
-
-    [<Test>]
-    let ``Cannot play the next segment from the StoppedFollowing state``() = 
-        let (beforeState, spokenStateRef) = StateTestUtilities.stoppedFollowingState ()   
-        let stateTransition = Replaying.PlayNextSegment(beforeState, 0.0f)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.StoppedFollowing @>
-
-        stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks invalidNextSegmentMessage spokenStateRef replayingState
-
-    [<Test>]
-    let ``Cannot replay the current segment from the StoppedFollowing state``() = 
-        let (beforeState, spokenStateRef) = StateTestUtilities.stoppedFollowingState ()   
-        let stateTransition = Replaying.ReplayCurrentSegment(beforeState, 0.0f)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.StoppedFollowing @>
-
-        stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks invalidReplayStepMessage spokenStateRef replayingState
-
-    [<Test>]
-    let ``Cannot move along the current segment from the StoppedFollowing state``() = 
-        let (beforeState, _) = StateTestUtilities.stoppedFollowingState ()   
-        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.StoppedFollowing @>
-        test <@ stateTransition.SideEffects.Count = 0 @>
-
-    [<Test>]
-    let ``Cannot play the next segment from the PathSimplified state``() = 
-        let (beforeState, spokenStateRef) = StateTestUtilities.pathSimplifiedState ()   
-        let stateTransition = Replaying.PlayNextSegment(beforeState, 0.0f)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.PathSimplified @>
-
-        stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks invalidNextSegmentMessage spokenStateRef replayingState
-
-    [<Test>]
-    let ``Cannot replay the current segment from the PathSimplified state``() = 
-        let (beforeState, spokenStateRef) = StateTestUtilities.pathSimplifiedState ()   
-        let stateTransition = Replaying.ReplayCurrentSegment(beforeState, 0.0f)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.PathSimplified @>
-
-        stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks invalidReplayStepMessage spokenStateRef replayingState
-
-    [<Test>]
-    let ``Cannot move along the current segment from the PathSimplified state``() = 
-        let (beforeState, _) = StateTestUtilities.pathSimplifiedState ()   
-        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.PathSimplified @>
-        test <@ stateTransition.SideEffects.Count = 0 @>
-
-    [<Test>]
-    let ``Cannot play the next segment from the SolutionFound state``() = 
-        let (beforeState, spokenStateRef) = StateTestUtilities.solutionFoundState ()   
-        let stateTransition = Replaying.PlayNextSegment(beforeState, 0.0f)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.SolutionFound @>
-
-        stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks invalidNextSegmentMessage spokenStateRef replayingState
-
-    [<Test>]
-    let ``Cannot replay the current segment from the SolutionFound state``() = 
-        let (beforeState, spokenStateRef) = StateTestUtilities.solutionFoundState ()   
-        let stateTransition = Replaying.ReplayCurrentSegment(beforeState, 0.0f)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.SolutionFound @>
-
-        stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks invalidReplayStepMessage spokenStateRef replayingState
-
-    [<Test>]
-    let ``Cannot move along the current segment from the SolutionFound state``() = 
-        let (beforeState, _) = StateTestUtilities.solutionFoundState ()   
-        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.SolutionFound @>
-        test <@ stateTransition.SideEffects.Count = 0 @>
-
-    [<Test>]
-    let ``Cannot move along the current segment from the WaitingToReplay state``() = 
-        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
-        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
-
-        let replayingState = stateTransition.NewState
-        test <@ replayingState.Mode = GameMode.WaitingToReplay @>
-        test <@ stateTransition.SideEffects.Count = 0 @>
-
-    [<Test>]
-    let ``Cannot play the next segment from the FinishedReplaying state``() = 
-        let (beforeState, spokenStateRef) = StateTestUtilities.finishedReplayingState ()   
-        let stateTransition = Replaying.PlayNextSegment(beforeState, 0.0f)
-
-        let newState = stateTransition.NewState
-        test <@ newState.Mode = GameMode.FinishedReplaying @>
-
-        let endOfPathMessage = "You're at the end of the path."
-        stateTransition.SideEffects 
-            |> StateTestUtilities.testSingleSideEffectSpeaks endOfPathMessage spokenStateRef newState
 
     [<Test>]
     let ``Playing the next segment has no immediate side effects``() = 
@@ -484,3 +227,267 @@ module ReplayingTests =
 
         GameState.SayStatus(replayingState) 
             |> StateTestUtilities.testSingleSideEffectSpeaks expectedSpokenState spokenStateRef replayingState
+
+(******************************* STATE TRANSITION ACCESSIBILITY TESTS *******************************)
+
+(** Play next segment **)
+
+    let invalidNextSegmentMessage = "I can't replay the solution because I have no solution to replay."
+    let invalidReplayStepMessage = "I can't replay the current step because I currently don't have a step to replay."
+
+    [<Test>]
+    let ``Can play the next segment from the WaitingToReplay state``() = 
+        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
+        let replayingState = Replaying.PlayNextSegment(beforeState, 0.0f).NewState
+        test <@ replayingState.Mode = GameMode.Replaying @>
+
+    [<Test>]
+    let ``Can play the next segment from the Replaying state``() = 
+        let (beforeState, _) = StateTestUtilities.replayingState ()   
+        let replayingState = Replaying.PlayNextSegment(beforeState, 0.0f).NewState
+        test <@ replayingState.Mode = GameMode.Replaying @>
+
+    [<Test>]
+    let ``Cannot play the next segment from the FinishedReplaying state``() = 
+        let (beforeState, spokenStateRef) = StateTestUtilities.finishedReplayingState ()   
+        let stateTransition = Replaying.PlayNextSegment(beforeState, 0.0f)
+
+        let newState = stateTransition.NewState
+        test <@ newState.Mode = GameMode.FinishedReplaying @>
+
+        let endOfPathMessage = "You're at the end of the path."
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks endOfPathMessage spokenStateRef newState
+
+    [<Test>]
+    let ``Cannot play the next segment from the Starting state``() = 
+        let (beforeState, spokenStateRef) = StateTestUtilities.initialState ()   
+        let stateTransition = Replaying.PlayNextSegment(beforeState, 0.0f)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.Starting @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidNextSegmentMessage spokenStateRef replayingState
+
+    [<Test>]
+    let ``Cannot play the next segment from the Measuring state``() = 
+        let (beforeState, spokenStateRef) = StateTestUtilities.measuringState ()   
+        let stateTransition = Replaying.PlayNextSegment(beforeState, 0.0f)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.Measuring @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidNextSegmentMessage spokenStateRef replayingState
+
+    [<Test>]
+    let ``Cannot play the next segment from the Following state``() = 
+        let (beforeState, spokenStateRef) = StateTestUtilities.followingState ()   
+        let stateTransition = Replaying.PlayNextSegment(beforeState, 0.0f)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.Following @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidNextSegmentMessage spokenStateRef replayingState
+
+    [<Test>]
+    let ``Cannot play the next segment from the StoppedFollowing state``() = 
+        let (beforeState, spokenStateRef) = StateTestUtilities.stoppedFollowingState ()   
+        let stateTransition = Replaying.PlayNextSegment(beforeState, 0.0f)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.StoppedFollowing @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidNextSegmentMessage spokenStateRef replayingState
+
+    [<Test>]
+    let ``Cannot play the next segment from the PathSimplified state``() = 
+        let (beforeState, spokenStateRef) = StateTestUtilities.pathSimplifiedState ()   
+        let stateTransition = Replaying.PlayNextSegment(beforeState, 0.0f)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.PathSimplified @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidNextSegmentMessage spokenStateRef replayingState
+
+    [<Test>]
+    let ``Cannot play the next segment from the SolutionFound state``() = 
+        let (beforeState, spokenStateRef) = StateTestUtilities.solutionFoundState ()   
+        let stateTransition = Replaying.PlayNextSegment(beforeState, 0.0f)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.SolutionFound @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidNextSegmentMessage spokenStateRef replayingState
+
+(** Replay current segment **)
+
+    [<Test>]
+    let ``Can replay the current segment from the WaitingToReplay state``() = 
+        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
+        let replayingState = Replaying.ReplayCurrentSegment(beforeState, 0.0f).NewState
+        test <@ replayingState.Mode = GameMode.Replaying @>
+
+    [<Test>]
+    let ``Can replay the current segment from the Replaying state``() = 
+        let (beforeState, _) = StateTestUtilities.replayingState ()   
+        let replayingState = Replaying.ReplayCurrentSegment(beforeState, 0.0f).NewState
+        test <@ replayingState.Mode = GameMode.Replaying @>
+
+    [<Test>]
+    let ``Can replay the current segment from the FinishedReplaying state``() = 
+        let (beforeState, _) = StateTestUtilities.finishedReplayingState ()   
+        let replayingState = Replaying.ReplayCurrentSegment(beforeState, 0.0f).NewState
+        test <@ replayingState.Mode = GameMode.Replaying @>
+
+    [<Test>]
+    let ``Cannot replay the current segment from the Starting state``() = 
+        let (beforeState, spokenStateRef) = StateTestUtilities.initialState ()   
+        let stateTransition = Replaying.ReplayCurrentSegment(beforeState, 0.0f)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.Starting @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidReplayStepMessage spokenStateRef replayingState
+
+    [<Test>]
+    let ``Cannot replay the current segment from the Measuring state``() = 
+        let (beforeState, spokenStateRef) = StateTestUtilities.measuringState ()   
+        let stateTransition = Replaying.ReplayCurrentSegment(beforeState, 0.0f)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.Measuring @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidReplayStepMessage spokenStateRef replayingState
+
+    [<Test>]
+    let ``Cannot replay the current segment from the Following state``() = 
+        let (beforeState, spokenStateRef) = StateTestUtilities.followingState ()   
+        let stateTransition = Replaying.ReplayCurrentSegment(beforeState, 0.0f)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.Following @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidReplayStepMessage spokenStateRef replayingState
+
+    [<Test>]
+    let ``Cannot replay the current segment from the StoppedFollowing state``() = 
+        let (beforeState, spokenStateRef) = StateTestUtilities.stoppedFollowingState ()   
+        let stateTransition = Replaying.ReplayCurrentSegment(beforeState, 0.0f)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.StoppedFollowing @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidReplayStepMessage spokenStateRef replayingState
+
+    [<Test>]
+    let ``Cannot replay the current segment from the PathSimplified state``() = 
+        let (beforeState, spokenStateRef) = StateTestUtilities.pathSimplifiedState ()   
+        let stateTransition = Replaying.ReplayCurrentSegment(beforeState, 0.0f)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.PathSimplified @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidReplayStepMessage spokenStateRef replayingState
+
+    [<Test>]
+    let ``Cannot replay the current segment from the SolutionFound state``() = 
+        let (beforeState, spokenStateRef) = StateTestUtilities.solutionFoundState ()   
+        let stateTransition = Replaying.ReplayCurrentSegment(beforeState, 0.0f)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.SolutionFound @>
+
+        stateTransition.SideEffects 
+            |> StateTestUtilities.testSingleSideEffectSpeaks invalidReplayStepMessage spokenStateRef replayingState
+
+(** Move along current segment **)
+
+    [<Test>]
+    let ``Cannot move along the current segment from the WaitingToReplay state``() = 
+        let (beforeState, _) = StateTestUtilities.waitingToReplayState ()   
+        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.WaitingToReplay @>
+        test <@ stateTransition.SideEffects.Count = 0 @>
+
+    [<Test>]
+    let ``Can move along the current segment from the Replaying state``() = 
+        let (beforeState, _) = StateTestUtilities.replayingState ()   
+        let replayingState = 
+            Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner).NewState
+        test <@ replayingState.Mode = GameMode.Replaying @>
+
+    [<Test>]
+    let ``Cannot move along the current segment from the FinishedReplaying state``() = 
+        let (beforeState, _) = StateTestUtilities.finishedReplayingState ()   
+        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.FinishedReplaying @>
+        test <@ stateTransition.SideEffects.Count = 0 @>
+
+    [<Test>]
+    let ``Cannot move along the current segment from the Starting state``() = 
+        let (beforeState, _) = StateTestUtilities.initialState ()   
+        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.Starting @>
+        test <@ stateTransition.SideEffects.Count = 0 @>
+
+    [<Test>]
+    let ``Cannot move along the current segment from the Measuring state``() = 
+        let (beforeState, _) = StateTestUtilities.measuringState ()   
+        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.Measuring @>
+        test <@ stateTransition.SideEffects.Count = 0 @>
+
+    [<Test>]
+    let ``Cannot move along the current segment from the Following state``() = 
+        let (beforeState, _) = StateTestUtilities.followingState ()   
+        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.Following @>
+        test <@ stateTransition.SideEffects.Count = 0 @>
+
+    [<Test>]
+    let ``Cannot move along the current segment from the StoppedFollowing state``() = 
+        let (beforeState, _) = StateTestUtilities.stoppedFollowingState ()   
+        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.StoppedFollowing @>
+        test <@ stateTransition.SideEffects.Count = 0 @>
+
+    [<Test>]
+    let ``Cannot move along the current segment from the PathSimplified state``() = 
+        let (beforeState, _) = StateTestUtilities.pathSimplifiedState ()   
+        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.PathSimplified @>
+        test <@ stateTransition.SideEffects.Count = 0 @>
+
+    [<Test>]
+    let ``Cannot move along the current segment from the SolutionFound state``() = 
+        let (beforeState, _) = StateTestUtilities.solutionFoundState ()   
+        let stateTransition = Replaying.KeepReplaying(beforeState, 0.0f, StateTestUtilities.measurePositioner)
+
+        let replayingState = stateTransition.NewState
+        test <@ replayingState.Mode = GameMode.SolutionFound @>
+        test <@ stateTransition.SideEffects.Count = 0 @>

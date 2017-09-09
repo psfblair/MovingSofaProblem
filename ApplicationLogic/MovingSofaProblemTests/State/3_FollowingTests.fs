@@ -20,54 +20,6 @@ module FollowingTests =
         )
 
     [<Test>]
-    let ``Can be reached from the Starting state``() = 
-        let (startingState, _) = StateTestUtilities.initialState ()   
-        let stateTransition = startFollowingFrom startingState
-        test <@ stateTransition.NewState.Mode = GameMode.Following @>
-
-    [<Test>]
-    let ``Can be reached from the Measuring state``() = 
-        let (measuringState, _) = StateTestUtilities.measuringState ()      
-        let stateTransition = startFollowingFrom measuringState
-        test <@ stateTransition.NewState.Mode = GameMode.Following @>
-
-    [<Test>]
-    let ``Can be reached from the StoppedFollowing state``() = 
-        let (stoppedFollowingState, _) = StateTestUtilities.stoppedFollowingState ()      
-        let stateTransition = startFollowingFrom stoppedFollowingState
-        test <@ stateTransition.NewState.Mode = GameMode.Following @>
-
-    [<Test>]
-    let ``Can be reached from the PathSimplified state``() = 
-        let (pathSimplifiedState, _) = StateTestUtilities.pathSimplifiedState ()      
-        let stateTransition = startFollowingFrom pathSimplifiedState
-        test <@ stateTransition.NewState.Mode = GameMode.Following @>
-
-    [<Test>]
-    let ``Can be reached from the SolutionFound state``() = 
-        let (solutionFoundState, _) = StateTestUtilities.solutionFoundState ()   
-        let stateTransition = startFollowingFrom solutionFoundState
-        test <@ stateTransition.NewState.Mode = GameMode.Following @>
-
-    [<Test>]
-    let ``Can be reached from the WaitingToReplay state``() = 
-        let (waitingToReplayState, _) = StateTestUtilities.waitingToReplayState ()   
-        let stateTransition = startFollowingFrom waitingToReplayState
-        test <@ stateTransition.NewState.Mode = GameMode.Following @>
-
-    [<Test>]
-    let ``Can be reached from the Replaying state``() = 
-        let (replayingState, _) = StateTestUtilities.replayingState ()   
-        let stateTransition = startFollowingFrom replayingState
-        test <@ stateTransition.NewState.Mode = GameMode.Following @>
-
-    [<Test>]
-    let ``Can be reached from the FinishedReplaying state``() = 
-        let (finishedReplayingState, _) = StateTestUtilities.finishedReplayingState ()   
-        let stateTransition = startFollowingFrom finishedReplayingState
-        test <@ stateTransition.NewState.Mode = GameMode.Following @>
-
-    [<Test>]
     let ``Initializes initial path to measure's position and camera's Y``() = 
         let (beforeState, _) = StateTestUtilities.measuringState ()
         beforeState.Measure.transform.position <- Vector(5.0f, 4.0f, 3.0f)
@@ -228,3 +180,53 @@ module FollowingTests =
 
         GameState.SayStatus(followingState) 
             |> StateTestUtilities.testSingleSideEffectSpeaks expectedSpokenState spokenStateRef followingState
+
+(******************************* STATE TRANSITION ACCESSIBILITY TESTS *******************************)
+
+    [<Test>]
+    let ``Can be reached from the Starting state``() = 
+        let (startingState, _) = StateTestUtilities.initialState ()   
+        let stateTransition = startFollowingFrom startingState
+        test <@ stateTransition.NewState.Mode = GameMode.Following @>
+
+    [<Test>]
+    let ``Can be reached from the Measuring state``() = 
+        let (measuringState, _) = StateTestUtilities.measuringState ()      
+        let stateTransition = startFollowingFrom measuringState
+        test <@ stateTransition.NewState.Mode = GameMode.Following @>
+
+    [<Test>]
+    let ``Can be reached from the StoppedFollowing state``() = 
+        let (stoppedFollowingState, _) = StateTestUtilities.stoppedFollowingState ()      
+        let stateTransition = startFollowingFrom stoppedFollowingState
+        test <@ stateTransition.NewState.Mode = GameMode.Following @>
+
+    [<Test>]
+    let ``Can be reached from the PathSimplified state``() = 
+        let (pathSimplifiedState, _) = StateTestUtilities.pathSimplifiedState ()      
+        let stateTransition = startFollowingFrom pathSimplifiedState
+        test <@ stateTransition.NewState.Mode = GameMode.Following @>
+
+    [<Test>]
+    let ``Can be reached from the SolutionFound state``() = 
+        let (solutionFoundState, _) = StateTestUtilities.solutionFoundState ()   
+        let stateTransition = startFollowingFrom solutionFoundState
+        test <@ stateTransition.NewState.Mode = GameMode.Following @>
+
+    [<Test>]
+    let ``Can be reached from the WaitingToReplay state``() = 
+        let (waitingToReplayState, _) = StateTestUtilities.waitingToReplayState ()   
+        let stateTransition = startFollowingFrom waitingToReplayState
+        test <@ stateTransition.NewState.Mode = GameMode.Following @>
+
+    [<Test>]
+    let ``Can be reached from the Replaying state``() = 
+        let (replayingState, _) = StateTestUtilities.replayingState ()   
+        let stateTransition = startFollowingFrom replayingState
+        test <@ stateTransition.NewState.Mode = GameMode.Following @>
+
+    [<Test>]
+    let ``Can be reached from the FinishedReplaying state``() = 
+        let (finishedReplayingState, _) = StateTestUtilities.finishedReplayingState ()   
+        let stateTransition = startFollowingFrom finishedReplayingState
+        test <@ stateTransition.NewState.Mode = GameMode.Following @>
