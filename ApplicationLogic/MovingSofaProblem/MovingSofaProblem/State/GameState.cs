@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using Functional.Option;
 
-using MovingSofaProblem.Path;
-
 #if UNIT_TESTS
-using Measure = Domain.Measure;
+using Situation = Domain.Situation;
+using Vector = Domain.Vector;
 #else
-using Measure = UnityEngine.GameObject;
+using Situation = UnityEngine.Transform;
+using Vector = UnityEngine.Vector3;
 #endif
+
+using MovingSofaProblem.Path;
 
 namespace MovingSofaProblem.State
 {
@@ -17,7 +19,9 @@ namespace MovingSofaProblem.State
         private readonly Action<string> statusSpeaker;
 
         // For initialization from zero
-        protected GameState(GameMode gameMode, 
+        protected GameState(GameMode gameMode,
+                            Situation cameraSituation,
+                            float yCarryPositionRelativeToCamera,
                             Action<string> statusSpeaker)
         {
             this.Mode = gameMode;
@@ -26,9 +30,15 @@ namespace MovingSofaProblem.State
             this.PathToReplay = new PathHolder();
             this.CurrentPathStep = Option.None;
             this.SegmentReplayStartTime = 0;
-            this.Measure = new Measure();
+            this.CarryPositionRelativeToCamera = 
+                new Vector(0.0f, yCarryPositionRelativeToCamera, 0.0f);
             this.statusSpeaker = statusSpeaker;
-        }
+
+			this.MeasureLocation = SpatialCalculations.ReorientRelativeToOneUnitForwardFrom(
+				cameraSituation,
+                CarryPositionRelativeToCamera
+			);
+		}
 
         // Initialization based on a prior state, then modified by subclass constructor if necessary.
         protected GameState(GameMode gameMode, GameState priorState)
@@ -39,15 +49,17 @@ namespace MovingSofaProblem.State
             this.PathToReplay = priorState.PathToReplay;
             this.CurrentPathStep = priorState.CurrentPathStep;
             this.SegmentReplayStartTime = priorState.SegmentReplayStartTime;
-            this.Measure = priorState.Measure;
+            this.MeasureLocation = priorState.MeasureLocation;
+            this.CarryPositionRelativeToCamera = priorState.CarryPositionRelativeToCamera;
             this.statusSpeaker = priorState.statusSpeaker;
         }
 
-        public GameMode   Mode                  { get; protected set; }
-        public PathHolder InitialPath           { get; internal set; }
-        public Option<PathStep> CurrentPathStep { get; protected set; }
-        public float SegmentReplayStartTime     { get; protected set; }
-        public Measure Measure               { get; protected set; }
+        public GameMode   Mode                      { get; protected set; }
+        public PathHolder InitialPath               { get; internal set; }
+        public Option<PathStep> CurrentPathStep     { get; protected set; }
+        public float SegmentReplayStartTime         { get; protected set; }
+        public Vector CarryPositionRelativeToCamera { get; private set;  }
+        public PositionAndRotation MeasureLocation  { get; internal set; }
 
         public abstract string SayableStateDescription { get;  }
         public abstract string SayableStatus { get; }

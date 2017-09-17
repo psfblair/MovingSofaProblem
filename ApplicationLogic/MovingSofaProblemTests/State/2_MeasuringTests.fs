@@ -14,7 +14,7 @@ module MeasuringTests =
         Measuring.StartMeasuring(
               state
             , StateTestUtilities.cameraAtOrigin
-            , fun measure positionAndRotation -> measure
+            , StateTestUtilities.measurePositioner
         )
 
     [<Test>]
@@ -23,9 +23,7 @@ module MeasuringTests =
         let startMeasuringStateTransition = startMeasuringFrom startingState
 
         let state = startMeasuringStateTransition.NewState
-        test <@ state.Measure.transform.position = StateTestUtilities.origin @>
-        test <@ state.Measure.transform.rotation = StateTestUtilities.zeroRotation @>
-        test <@ state.Measure.transform.forward = StateTestUtilities.origin @>
+        test <@ state.MeasureLocation = StateTestUtilities.initializedMeasurePositionAndRotation @>
         test <@ state.InitialPath.path.Count = 0 @>
         test <@ state.CurrentPathStep = MaybePathStep.None @>
         test <@ GameState.FirstStep(state) = MaybePathStep.None @>
@@ -39,16 +37,18 @@ module MeasuringTests =
         test <@ List.length sideEffects = 2 @>
 
     [<Test>]
-    let ``Creates a measure and transitions to the Measuring state in the first side effect``() = 
+    let ``Puts the measure at the current measure location and transitions to the Measuring state in the first side effect``() = 
         let (startingState, _) = StateTestUtilities.initialState ()
-        let measureCreator = 
-            System.Func<Measure, PositionAndRotation, Measure>(
-                fun measure positionAndRotation -> 
-                    StateTestUtilities.measureAt positionAndRotation.Position positionAndRotation.Rotation
-            )
+        // So we can tell it changed
+        let mutable measureCreatedAtPositionAndRotation =
+            PositionAndRotation(Vector(-1.0f, -1.0f, -1.0f), Rotation(-1.0f, -1.0f, -1.0f, -1.0f))
 
         let startMeasuringStateTransition = 
-            Measuring.StartMeasuring(startingState, StateTestUtilities.cameraAtOrigin, measureCreator)
+            Measuring.StartMeasuring(
+                startingState, 
+                StateTestUtilities.cameraAtOrigin, 
+                fun positionAndRotation -> measureCreatedAtPositionAndRotation <- positionAndRotation ; ()
+            )
 
         let sideEffects = startMeasuringStateTransition.SideEffects |> List.ofSeq
         test <@ List.length sideEffects = 2 @>
@@ -57,9 +57,8 @@ module MeasuringTests =
         let newState = sideEffect.Invoke(startMeasuringStateTransition.NewState)
         test <@ newState.Mode = GameMode.Measuring @>
 
-        let initialPositionRelativeToCamera = Vector(0.0f, -0.2f, 1.0f)
-        test <@ newState.Measure.transform.position = initialPositionRelativeToCamera @>
-        test <@ newState.Measure.transform.rotation = StateTestUtilities.facingCameraRotation @>
+        test <@ newState.MeasureLocation = StateTestUtilities.initializedMeasurePositionAndRotation @>
+        test <@ measureCreatedAtPositionAndRotation = StateTestUtilities.initializedMeasurePositionAndRotation @>
 
 
     [<Test>]

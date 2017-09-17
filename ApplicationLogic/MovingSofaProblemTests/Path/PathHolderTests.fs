@@ -19,6 +19,10 @@ module PathHolderTests =
     let cameraHeight2 = 2.0f
     let cameraHeight3 = 3.0f
 
+    let positionAndRotation1 = PositionAndRotation(vector1, rotation1)
+    let positionAndRotation2 = PositionAndRotation(vector2, rotation2)
+    let positionAndRotation3 = PositionAndRotation(vector3, rotation3)
+
     [<Test>]
     let ``PathHolder: Empty PathHolder has no segments``() = 
         let pathHolder = PathHolder()
@@ -37,15 +41,15 @@ module PathHolderTests =
     [<Test>]
     let ``PathHolder: A PathHolder adds a breadcrumb to an empty PathHolder``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(vector1, rotation1, cameraHeight1)
+        pathHolder.Add(positionAndRotation1, cameraHeight1)
 
         test <@ PathHolder.FirstStep(pathHolder) = MaybePathStep.None @>
 
     [<Test>]
     let ``PathHolder: Adds a breadcrumb to a PathHolder that already has one in it``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(vector1, rotation1, cameraHeight1)
-        pathHolder.Add(vector2, rotation2, cameraHeight2)
+        pathHolder.Add(positionAndRotation1, cameraHeight1)
+        pathHolder.Add(positionAndRotation2, cameraHeight2)
 
         let firstStep = PathHolder.FirstStep(pathHolder).Value
 
@@ -56,17 +60,17 @@ module PathHolderTests =
     [<Test>]
     let ``PathHolder: Has segments with two breadcrumbs``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(vector1, rotation1, cameraHeight1)
-        pathHolder.Add(vector2, rotation2, cameraHeight2)
+        pathHolder.Add(positionAndRotation1, cameraHeight1)
+        pathHolder.Add(positionAndRotation2, cameraHeight2)
 
         test <@ PathHolder.HasSegments(pathHolder) @>
  
     [<Test>]
     let ``PathHolder: Has two path segments with three breadcrumbs``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(vector1, rotation1, cameraHeight1)
-        pathHolder.Add(vector2, rotation2, cameraHeight2)
-        pathHolder.Add(vector3, rotation3, cameraHeight3)
+        pathHolder.Add(positionAndRotation1, cameraHeight1)
+        pathHolder.Add(positionAndRotation2, cameraHeight2)
+        pathHolder.Add(positionAndRotation3, cameraHeight3)
 
         let firstStep = PathHolder.FirstStep(pathHolder).Value
 
@@ -83,60 +87,60 @@ module PathHolderTests =
     [<Test>]
     let ``PathHolder: Has segments if it has multiple path segments``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(vector1, rotation1, cameraHeight1)
-        pathHolder.Add(vector2, rotation2, cameraHeight2)
-        pathHolder.Add(vector3, rotation3, cameraHeight3)
+        pathHolder.Add(positionAndRotation1, cameraHeight1)
+        pathHolder.Add(positionAndRotation2, cameraHeight2)
+        pathHolder.Add(positionAndRotation3, cameraHeight3)
 
         test <@ PathHolder.HasSegments(pathHolder) @>
  
     [<Test>]
     let ``PathHolder: Final camera Y is camera Y of last breadcrumb``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(vector1, rotation1, cameraHeight1)
-        pathHolder.Add(vector2, rotation2, cameraHeight2)
-        pathHolder.Add(vector3, rotation3, cameraHeight3)
+        pathHolder.Add(positionAndRotation1, cameraHeight1)
+        pathHolder.Add(positionAndRotation2, cameraHeight2)
+        pathHolder.Add(positionAndRotation3, cameraHeight3)
 
         test <@ PathHolder.FinalCameraY(pathHolder).Value = cameraHeight3 @>
  
     [<Test>]
     let ``PathHolder: Simplifies a path when there is no deviation or rotation``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(Vector(1.0f, 1.0f, 1.0f), rotation1, cameraHeight1)
-        pathHolder.Add(Vector(2.0f, 2.0f, 2.0f), rotation1, cameraHeight1)
-        pathHolder.Add(Vector(3.0f, 3.0f, 3.0f), rotation1, cameraHeight3)
-        pathHolder.Add(Vector(4.0f, 4.0f, 4.0f), rotation1, cameraHeight1)
+        pathHolder.Add(PositionAndRotation(Vector(1.0f, 1.0f, 1.0f), rotation1), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(Vector(2.0f, 2.0f, 2.0f), rotation1), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(Vector(3.0f, 3.0f, 3.0f), rotation1), cameraHeight3)
+        pathHolder.Add(PositionAndRotation(Vector(4.0f, 4.0f, 4.0f), rotation1), cameraHeight1)
 
         let expected = PathHolder()
-        expected.Add(Vector(1.0f, 1.0f, 1.0f), rotation1, cameraHeight1)
-        expected.Add(Vector(4.0f, 4.0f, 4.0f), rotation1, cameraHeight1)
+        expected.Add(PositionAndRotation(Vector(1.0f, 1.0f, 1.0f), rotation1), cameraHeight1)
+        expected.Add(PositionAndRotation(Vector(4.0f, 4.0f, 4.0f), rotation1), cameraHeight1)
 
         test <@ PathHolder.Simplify(pathHolder) = expected @>
  
     [<Test>]
     let ``PathHolder: Simplifies a path when there is minor X deviation``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(Vector(1.0f, 1.0f, 1.0f), rotation1, cameraHeight1)
-        pathHolder.Add(Vector(2.0f, 2.0f, 2.0f), rotation1, cameraHeight1)
-        pathHolder.Add(Vector(3.1f, 3.0f, 3.0f), rotation1, cameraHeight3)
-        pathHolder.Add(Vector(4.0f, 4.0f, 4.0f), rotation1, cameraHeight1)
+        pathHolder.Add(PositionAndRotation(Vector(1.0f, 1.0f, 1.0f), rotation1), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(Vector(2.0f, 2.0f, 2.0f), rotation1), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(Vector(3.1f, 3.0f, 3.0f), rotation1), cameraHeight3)
+        pathHolder.Add(PositionAndRotation(Vector(4.0f, 4.0f, 4.0f), rotation1), cameraHeight1)
 
         let expected = PathHolder()
-        expected.Add(Vector(1.0f, 1.0f, 1.0f), rotation1, cameraHeight1)
-        expected.Add(Vector(4.0f, 4.0f, 4.0f), rotation1, cameraHeight1)
+        expected.Add(PositionAndRotation(Vector(1.0f, 1.0f, 1.0f), rotation1), cameraHeight1)
+        expected.Add(PositionAndRotation(Vector(4.0f, 4.0f, 4.0f), rotation1), cameraHeight1)
 
         test <@ PathHolder.Simplify(pathHolder) = expected @>
 
     [<Test>]
     let ``PathHolder: Simplifies a path when there is minor Y deviation``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(Vector(1.0f, 1.0f, 1.0f), rotation1, cameraHeight1)
-        pathHolder.Add(Vector(2.0f, 2.0f, 2.0f), rotation1, cameraHeight1)
-        pathHolder.Add(Vector(3.0f, 3.1f, 3.0f), rotation1, cameraHeight3)
-        pathHolder.Add(Vector(4.0f, 4.0f, 4.0f), rotation1, cameraHeight1)
+        pathHolder.Add(PositionAndRotation(Vector(1.0f, 1.0f, 1.0f), rotation1), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(Vector(2.0f, 2.0f, 2.0f), rotation1), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(Vector(3.0f, 3.1f, 3.0f), rotation1), cameraHeight3)
+        pathHolder.Add(PositionAndRotation(Vector(4.0f, 4.0f, 4.0f), rotation1), cameraHeight1)
 
         let expected = PathHolder()
-        expected.Add(Vector(1.0f, 1.0f, 1.0f), rotation1, cameraHeight1)
-        expected.Add(Vector(4.0f, 4.0f, 4.0f), rotation1, cameraHeight1)
+        expected.Add(PositionAndRotation(Vector(1.0f, 1.0f, 1.0f), rotation1), cameraHeight1)
+        expected.Add(PositionAndRotation(Vector(4.0f, 4.0f, 4.0f), rotation1), cameraHeight1)
 
         test <@ PathHolder.Simplify(pathHolder) = expected @>
 
@@ -144,14 +148,14 @@ module PathHolderTests =
     [<Test>]
     let ``PathHolder: Simplifies a path when there is minor Z deviation``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(Vector(1.0f, 1.0f, 1.0f), rotation1, cameraHeight1)
-        pathHolder.Add(Vector(2.0f, 2.0f, 2.0f), rotation1, cameraHeight1)
-        pathHolder.Add(Vector(3.0f, 3.0f, 3.1f), rotation1, cameraHeight3)
-        pathHolder.Add(Vector(4.0f, 4.0f, 4.0f), rotation1, cameraHeight1)
+        pathHolder.Add(PositionAndRotation(Vector(1.0f, 1.0f, 1.0f), rotation1), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(Vector(2.0f, 2.0f, 2.0f), rotation1), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(Vector(3.0f, 3.0f, 3.1f), rotation1), cameraHeight3)
+        pathHolder.Add(PositionAndRotation(Vector(4.0f, 4.0f, 4.0f), rotation1), cameraHeight1)
 
         let expected = PathHolder()
-        expected.Add(Vector(1.0f, 1.0f, 1.0f), rotation1, cameraHeight1)
-        expected.Add(Vector(4.0f, 4.0f, 4.0f), rotation1, cameraHeight1)
+        expected.Add(PositionAndRotation(Vector(1.0f, 1.0f, 1.0f), rotation1), cameraHeight1)
+        expected.Add(PositionAndRotation(Vector(4.0f, 4.0f, 4.0f), rotation1), cameraHeight1)
 
         test <@ PathHolder.Simplify(pathHolder) = expected @>
 
@@ -159,15 +163,15 @@ module PathHolderTests =
     [<Test>]
     let ``PathHolder: Leaves points in a path where there is a major X deviation``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(Vector(1.0f, 1.0f, 1.0f), rotation1, cameraHeight1)
-        pathHolder.Add(Vector(2.0f, 2.0f, 2.0f), rotation1, cameraHeight1)
-        pathHolder.Add(Vector(3.0f, 3.0f, 3.0f), rotation1, cameraHeight3)
-        pathHolder.Add(Vector(5.0f, 4.0f, 4.0f), rotation1, cameraHeight1)
+        pathHolder.Add(PositionAndRotation(Vector(1.0f, 1.0f, 1.0f), rotation1), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(Vector(2.0f, 2.0f, 2.0f), rotation1), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(Vector(3.0f, 3.0f, 3.0f), rotation1), cameraHeight3)
+        pathHolder.Add(PositionAndRotation(Vector(5.0f, 4.0f, 4.0f), rotation1), cameraHeight1)
 
         let expected = PathHolder()
-        expected.Add(Vector(1.0f, 1.0f, 1.0f), rotation1, cameraHeight1)
-        expected.Add(Vector(3.0f, 3.0f, 3.0f), rotation1, cameraHeight3)
-        expected.Add(Vector(5.0f, 4.0f, 4.0f), rotation1, cameraHeight1)
+        expected.Add(PositionAndRotation(Vector(1.0f, 1.0f, 1.0f), rotation1), cameraHeight1)
+        expected.Add(PositionAndRotation(Vector(3.0f, 3.0f, 3.0f), rotation1), cameraHeight3)
+        expected.Add(PositionAndRotation(Vector(5.0f, 4.0f, 4.0f), rotation1), cameraHeight1)
 
         test <@ PathHolder.Simplify(pathHolder) = expected @>
 
@@ -176,56 +180,56 @@ module PathHolderTests =
     [<Test>]
     let ``PathHolder: Simplifies a path when there is minor X-component rotation``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector1,      Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector2,      Rotation(0.05f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector3,      Rotation(0.05f, 0.0f, 0.0f, 0.0f), cameraHeight3)
+        pathHolder.Add(PositionAndRotation(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(vector1,      Rotation(0.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(vector2,      Rotation(0.05f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(vector3,      Rotation(0.05f, 0.0f, 0.0f, 0.0f)), cameraHeight3)
 
         let expected = PathHolder()
-        expected.Add(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        expected.Add(vector3,      Rotation(0.05f, 0.0f, 0.0f, 0.0f), cameraHeight3)
+        expected.Add(PositionAndRotation(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        expected.Add(PositionAndRotation(vector3,      Rotation(0.05f, 0.0f, 0.0f, 0.0f)), cameraHeight3)
 
         test <@ PathHolder.Simplify(pathHolder) = expected @>
 
     [<Test>]
     let ``PathHolder: Simplifies a path when there is minor Y-component rotation``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector1,      Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector2,      Rotation(0.0f, 0.05f, 0.0f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector3,      Rotation(0.0f, 0.05f, 0.0f, 0.0f), cameraHeight3)
+        pathHolder.Add(PositionAndRotation(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(vector1,      Rotation(0.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(vector2,      Rotation(0.0f, 0.05f, 0.0f, 0.0f)), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(vector3,      Rotation(0.0f, 0.05f, 0.0f, 0.0f)), cameraHeight3)
 
         let expected = PathHolder()
-        expected.Add(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        expected.Add(vector3,      Rotation(0.0f, 0.05f, 0.0f, 0.0f), cameraHeight3)
+        expected.Add(PositionAndRotation(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        expected.Add(PositionAndRotation(vector3,      Rotation(0.0f, 0.05f, 0.0f, 0.0f)), cameraHeight3)
 
         test <@ PathHolder.Simplify(pathHolder) = expected @>
 
     [<Test>]
     let ``PathHolder: Simplifies a path when there is minor Z-component rotation``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector1,      Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector2,      Rotation(0.0f, 0.0f, 0.05f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector3,      Rotation(0.0f, 0.0f, 0.05f, 0.0f), cameraHeight3)
+        pathHolder.Add(PositionAndRotation(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(vector1,      Rotation(0.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(vector2,      Rotation(0.0f, 0.0f, 0.05f, 0.0f)), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(vector3,      Rotation(0.0f, 0.0f, 0.05f, 0.0f)), cameraHeight3)
 
         let expected = PathHolder()
-        expected.Add(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        expected.Add(vector3,      Rotation(0.0f, 0.0f, 0.05f, 0.0f), cameraHeight3)
+        expected.Add(PositionAndRotation(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        expected.Add(PositionAndRotation(vector3,      Rotation(0.0f, 0.0f, 0.05f, 0.0f)), cameraHeight3)
 
         test <@ PathHolder.Simplify(pathHolder) = expected @>
 
     [<Test>]
     let ``PathHolder: Simplifies a path when there is minor W-component rotation``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector1,      Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector2,      Rotation(0.0f, 0.0f, 0.0f, 0.05f), cameraHeight1)
-        pathHolder.Add(vector3,      Rotation(0.0f, 0.0f, 0.0f, 0.05f), cameraHeight3)
+        pathHolder.Add(PositionAndRotation(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(vector1,      Rotation(0.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(vector2,      Rotation(0.0f, 0.0f, 0.0f, 0.05f)), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(vector3,      Rotation(0.0f, 0.0f, 0.0f, 0.05f)), cameraHeight3)
 
         let expected = PathHolder()
-        expected.Add(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        expected.Add(vector3,      Rotation(0.0f, 0.0f, 0.0f, 0.05f), cameraHeight3)
+        expected.Add(PositionAndRotation(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        expected.Add(PositionAndRotation(vector3,      Rotation(0.0f, 0.0f, 0.0f, 0.05f)), cameraHeight3)
 
         test <@ PathHolder.Simplify(pathHolder) = expected @>
 
@@ -233,14 +237,14 @@ module PathHolderTests =
     [<Test>]
     let ``PathHolder: Leaves a path component when there is a major rotation``() = 
         let pathHolder = PathHolder()
-        pathHolder.Add(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector1,      Rotation(35.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector2,      Rotation(37.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        pathHolder.Add(vector3,      Rotation(37.0f, 0.0f, 0.0f, 0.0f), cameraHeight3)
+        pathHolder.Add(PositionAndRotation(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(vector1,      Rotation(35.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(vector2,      Rotation(37.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        pathHolder.Add(PositionAndRotation(vector3,      Rotation(37.0f, 0.0f, 0.0f, 0.0f)), cameraHeight3)
 
         let expected = PathHolder()
-        expected.Add(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        expected.Add(vector2,      Rotation(37.0f, 0.0f, 0.0f, 0.0f), cameraHeight1)
-        expected.Add(vector3,      Rotation(37.0f, 0.0f, 0.0f, 0.0f), cameraHeight3)
+        expected.Add(PositionAndRotation(originVector, Rotation(0.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        expected.Add(PositionAndRotation(vector2,      Rotation(37.0f, 0.0f, 0.0f, 0.0f)), cameraHeight1)
+        expected.Add(PositionAndRotation(vector3,      Rotation(37.0f, 0.0f, 0.0f, 0.0f)), cameraHeight3)
 
         test <@ PathHolder.Simplify(pathHolder) = expected @>

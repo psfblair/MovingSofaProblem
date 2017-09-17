@@ -13,9 +13,14 @@ namespace MovingSofaProblem.State
         private WaitingToReplay(GameState priorState, PathStep firstStep) : base(GameMode.WaitingToReplay, priorState)
         {
             this.CurrentPathStep = firstStep;
-        }
+			this.MeasureLocation = new PositionAndRotation(
+				firstStep.StartNode.Value.Position,
+				firstStep.StartNode.Value.Rotation
+			);
+		}
 
-        public static StateTransition StartReplaying(GameState currentState)
+        public static StateTransition StartReplaying(GameState currentState
+                                                    , Action<PositionAndRotation> measureMover)
         {
             PathStep firstStep;
             if (! GameState.FirstStep(currentState).TryGetValue(out firstStep))
@@ -28,8 +33,7 @@ namespace MovingSofaProblem.State
 
             Func<GameState, GameState> placeMeasureAtStart = state =>
             {
-                state.Measure.transform.position = firstStep.StartNode.Value.Position;
-                state.Measure.transform.rotation = firstStep.StartNode.Value.Rotation;
+                measureMover(state.MeasureLocation);
                 return state;
             };
 

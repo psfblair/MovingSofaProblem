@@ -16,14 +16,12 @@ namespace MovingSofaProblem.State
         }
 
 		internal static StateTransition SimplifyPath(GameState priorState
+                                                    , PositionAndRotation positionAndRotationAfterDropped
                                                     , Func<PathHolder, PathHolder> solutionFinder)
         {
-            var priorLocation = priorState.Measure.transform;
-            // Make sure the final point where the object is dropped is in the path.
-            // We will use the cameraY of the previous breadcrumb before we dropped the object.
-            var finalY = PathHolder.FinalCameraY(priorState.InitialPath).ValueOr(priorLocation.position.y);
-
-            priorState.InitialPath.Add(priorLocation.position, priorLocation.rotation, finalY);
+            // We now use the final Y of the object, since it's been put down
+            var finalY = positionAndRotationAfterDropped.Position.y;
+            priorState.InitialPath.Add(positionAndRotationAfterDropped, finalY);
             var simplifiedPath = PathHolder.Simplify(priorState.InitialPath);
             var newState = new PathSimplified(priorState, simplifiedPath);
 

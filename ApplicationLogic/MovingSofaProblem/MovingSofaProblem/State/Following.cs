@@ -4,11 +4,9 @@ using MovingSofaProblem.Path;
 
 #if UNIT_TESTS
 using Situation = Domain.Situation;
-using Measure = Domain.Measure;
 using Vector = Domain.Vector;
 #else
-using CameraLocation = UnityEngine.Transform;
-using Measure = UnityEngine.GameObject;
+using Situation = UnityEngine.Transform;
 using Vector = UnityEngine.Vector3;
 #endif
 
@@ -16,66 +14,64 @@ namespace MovingSofaProblem.State
 {
     public sealed class Following : GameState
     {
-        static readonly Vector CarryPositionRelativeToOneUnitInFrontOfCamera = new Vector(0.0f, -0.2f, 0.0f);
-
         private string whatYouCanSayNow = "Say 'Put it down' when you have arrived at the place where you want to move the object.";
         override public string SayableStateDescription { get { return "I'm following you. Go to where you want to move the object. " + whatYouCanSayNow; } }
         override public string SayableStatus { get { return "I am following you. You can " + whatYouCanSayNow; } }
 
-        private Following(GameState priorState, float cameraY) : base(GameMode.Following, priorState)
+        private Following(GameState priorState
+                          , PositionAndRotation measurePositionAndRotation
+                          , Situation cameraSituation) : base(GameMode.Following, priorState)
         {
+            this.MeasureLocation = measurePositionAndRotation;
             this.InitialPath = new PathHolder();
-            this.InitialPath.Add(priorState.Measure.transform.position
-                                 , priorState.Measure.transform.rotation
-                                 , cameraY);
+            this.InitialPath.Add(measurePositionAndRotation, cameraSituation.position.y);
             this.PathToReplay = new PathHolder();
         }
 
         public static StateTransition StartFollowing(GameState currentState
-                                                    , Situation cameraTransform
+                                                    , PositionAndRotation currentMeasurePosition
+                                                    , Situation cameraSituation
                                                     , Action boundingBoxDisabler
                                                     , Action spatialMappingObserverStarter
-                                                    , Func<Measure, PositionAndRotation, PositionAndRotation> moveMeasure)
+                                                    , Action<PositionAndRotation> moveMeasure)
         {
-            var newState = new Following(currentState, cameraTransform.position.y);
+            var newState = new Following(currentState, currentMeasurePosition, cameraSituation);
 
             Func<GameState, GameState> disableBoundingBox =
                 state => { boundingBoxDisabler(); return state; };
             Func<GameState, GameState> startSpatialMappingObserver =
                 state => { spatialMappingObserverStarter(); return state; };
-            Func<GameState, GameState> keepMeasureInFrontOfMe =
-                state =>
-                {
-					var newPositionAndRotation =
-						SpatialCalculations.ReorientRelativeToOneUnitForwardFrom(cameraTransform, CarryPositionRelativeToOneUnitInFrontOfCamera);
-					moveMeasure(currentState.Measure, newPositionAndRotation);
-					state.InitialPath.Add(newPositionAndRotation.Position
-                                         , newPositionAndRotation.Rotation
-                                         , cameraTransform.position.y);
-                    return state;
-                };
+            Func<GameState, GameState> keepMeasureInFrontOfMe = 
+                KeepMeasureInFrontOfMe(cameraSituation, moveMeasure);
 
             var sideEffects = ToList(disableBoundingBox, startSpatialMappingObserver, keepMeasureInFrontOfMe, GameState.SayState);
             return new StateTransition(newState, sideEffects);
         }
 
+        // We position the measure relative to the camera as we move.
         public static StateTransition KeepFollowing(GameState currentState
-                                                   , Situation cameraTransform
-												   , Func<Measure, PositionAndRotation, PositionAndRotation> moveMeasure)
+                                                   , Situation cameraLocation
+												   , Action<PositionAndRotation> moveMeasure)
 		{
-			Func<GameState, GameState> keepMeasureInFrontOfMe = state =>
-            {
-                var newPositionAndRotation =
-				    SpatialCalculations.ReorientRelativeToOneUnitForwardFrom(cameraTransform, CarryPositionRelativeToOneUnitInFrontOfCamera);
-                moveMeasure(currentState.Measure, newPositionAndRotation);
-                state.InitialPath.Add(newPositionAndRotation.Position
-                                     , newPositionAndRotation.Rotation
-                                     , cameraTransform.position.y);
-                return state;
-            };
-
-            var sideEffects = ToList(keepMeasureInFrontOfMe);
+            var sideEffects = ToList(KeepMeasureInFrontOfMe(cameraLocation, moveMeasure));
             return new StateTransition(currentState, sideEffects);
         }
+
+		private static Func<GameState, GameState> KeepMeasureInFrontOfMe(Situation cameraLocation
+												                        , Action<PositionAndRotation> moveMeasure)
+        {
+			return state =>
+    			{
+    				var newPositionAndRotation =
+    					SpatialCalculations.ReorientRelativeToOneUnitForwardFrom(
+                            cameraLocation, 
+                            state.CarryPositionRelativeToCamera
+                        );
+    				state.MeasureLocation = newPositionAndRotation;
+    				state.InitialPath.Add(newPositionAndRotation, cameraLocation.position.y);
+    				moveMeasure(newPositionAndRotation);
+    				return state;
+    			};
+		}
     }
 }

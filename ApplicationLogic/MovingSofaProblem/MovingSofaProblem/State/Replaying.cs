@@ -2,12 +2,6 @@ using System;
 
 using MovingSofaProblem.Path;
 
-#if UNIT_TESTS
-using Measure = Domain.Measure;
-#else
-using Measure = UnityEngine.GameObject;
-#endif
-
 namespace MovingSofaProblem.State
 {
     public sealed class Replaying : GameState
@@ -64,7 +58,7 @@ namespace MovingSofaProblem.State
 
         public static StateTransition KeepReplaying(GameState currentState
                                                    , float currentTime
-                                                   , Func<Measure, PositionAndRotation, PositionAndRotation> moveMeasure)
+                                                   , Action<PositionAndRotation> moveMeasure)
         {
             if(currentState.Mode != GameMode.Replaying)
             {
@@ -79,8 +73,7 @@ namespace MovingSofaProblem.State
                 {
                     if (!SpatialCalculations.IsMovementComplete(
                             currentPathStep.PathSegment, 
-                            state.Measure.transform.position, 
-                            state.Measure.transform.rotation)
+                            state.MeasureLocation)
                        )
                     {
                         var newPositionAndRotation =
@@ -90,8 +83,8 @@ namespace MovingSofaProblem.State
                                 , replayingTranslationSpeed
                                 , replayingRotationSpeed
                                 , currentPathStep.PathSegment);
-
-                        moveMeasure(state.Measure, newPositionAndRotation);
+                        state.MeasureLocation = newPositionAndRotation;
+                        moveMeasure(newPositionAndRotation);
                     }
                 }
                 return state;

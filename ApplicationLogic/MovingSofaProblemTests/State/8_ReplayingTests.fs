@@ -29,8 +29,7 @@ module ReplayingTests =
         test <@ replayingState.PathToReplay = beforeState.PathToReplay @>
         test <@ replayingState.InitialPath = beforeState.InitialPath @>
         test <@ Replaying.FirstStep(replayingState) = WaitingToReplay.FirstStep(beforeState) @>
-        test <@ replayingState.Measure.transform.position = beforeState.Measure.transform.position @>
-        test <@ replayingState.Measure.transform.rotation = beforeState.Measure.transform.rotation @>
+        test <@ replayingState.MeasureLocation = beforeState.MeasureLocation @>
 
     [<Test>]
     let ``Replaying the current segment changes no paths in the state``() = 
@@ -40,8 +39,7 @@ module ReplayingTests =
         test <@ replayingState.PathToReplay = beforeState.PathToReplay @>
         test <@ replayingState.InitialPath = beforeState.InitialPath @>
         test <@ Replaying.FirstStep(replayingState) = WaitingToReplay.FirstStep(beforeState) @>
-        test <@ replayingState.Measure.transform.position = beforeState.Measure.transform.position @>
-        test <@ replayingState.Measure.transform.rotation = beforeState.Measure.transform.rotation @>
+        test <@ replayingState.MeasureLocation = beforeState.MeasureLocation @>
 
     [<Test>]
     let ``Moving along the current segment changes no paths in the state``() = 
@@ -52,8 +50,7 @@ module ReplayingTests =
         test <@ keepReplayingState.PathToReplay = beforeState.PathToReplay @>
         test <@ keepReplayingState.InitialPath = beforeState.InitialPath @>
         test <@ Replaying.FirstStep(keepReplayingState) = WaitingToReplay.FirstStep(beforeState) @>
-        test <@ keepReplayingState.Measure.transform.position = beforeState.Measure.transform.position @>
-        test <@ keepReplayingState.Measure.transform.rotation = beforeState.Measure.transform.rotation @>
+        test <@ keepReplayingState.MeasureLocation = beforeState.MeasureLocation @>
 
     [<Test>]
     let ``Playing the first segment does not change the state's current step'``() = 
@@ -139,10 +136,7 @@ module ReplayingTests =
         let sideEffect = keepReplayingStateTransition.SideEffects |> List.ofSeq |> List.head
         let stateAfterMovingMeasure = sideEffect.Invoke(newState)
 
-        test <@ stateAfterMovingMeasure.Measure.transform.position = 
-                 beforeState.Measure.transform.position @>
-        test <@ stateAfterMovingMeasure.Measure.transform.rotation = 
-                 beforeState.Measure.transform.rotation @>
+        test <@ stateAfterMovingMeasure.MeasureLocation = beforeState.MeasureLocation @>
 
     [<Test>]
     let ``Moves the measure along the current segment in proportion to the time elapsed since playing started``() = 
@@ -156,10 +150,10 @@ module ReplayingTests =
 
         // Translation Speed is 0.7 units per second; the solution moves toward (1,2,3) 
         // The triple (0.1870829,0.3741657,0.5612485) is 0.7 units long.
-        test <@ stateAfterMovingMeasure.Measure.transform.position = Vector(0.1870829f,0.3741657f,0.5612485f) @>
+        test <@ stateAfterMovingMeasure.MeasureLocation.Position = Vector(0.1870829f,0.3741657f,0.5612485f) @>
 
         // Rotation Speed is 20 degrees per second; the solution moves toward (0,0,90,0) with our dummy rotation 
-        test <@ stateAfterMovingMeasure.Measure.transform.rotation = Rotation(0.0f, 0.0f, 20.0f, 0.0f) @>
+        test <@ stateAfterMovingMeasure.MeasureLocation.Rotation = Rotation(0.0f, 0.0f, 20.0f, 0.0f) @>
 
     [<Test>]
     let ``Leaves the measure at the end of the current segment if the entire translation and rotation have been traversed``() = 
@@ -167,29 +161,34 @@ module ReplayingTests =
         // Translation Speed is 0.7 units per second; the solution moves to (1,2,3) 
         // The square root of 14 units (3.74) should thus take a bit over 5 seconds. 
         // Rotation speed is 20 degrees per second; moving toward (0,0,90,0) should take 4.5 seconds
+        let currentTime = 6.0f
         let keepReplayingStateTransition = 
-            Replaying.KeepReplaying(beforeState, 6.0f, StateTestUtilities.measurePositioner)
+            Replaying.KeepReplaying(beforeState, currentTime, StateTestUtilities.measurePositioner)
         let newState = keepReplayingStateTransition.NewState
 
         let sideEffect = keepReplayingStateTransition.SideEffects |> List.ofSeq |> List.head
         let stateAfterMovingMeasure = sideEffect.Invoke(newState)
 
-        test <@ stateAfterMovingMeasure.Measure.transform.position = StateTestUtilities.solutionSecondPosition @>
-        test <@ stateAfterMovingMeasure.Measure.transform.rotation = StateTestUtilities.ninetyDegreesAroundZ @>
+        test <@ stateAfterMovingMeasure.MeasureLocation.Position = StateTestUtilities.solutionSecondPosition @>
+        test <@ stateAfterMovingMeasure.MeasureLocation.Rotation = StateTestUtilities.ninetyDegreesAroundZ @>
 
     [<Test>]
     let ``Continues translating but not rotating if the entire rotation has been traversed``() = 
         let (beforeState, _) = StateTestUtilities.replayingState ()
+        // Translation Speed is 0.7 units per second; the solution moves to (1,2,3) 
+        // The distance of 3.74 (square root of 14 units) should thus take about 5.34 seconds. 
+        // In 5.0 seconds we are 93% of the way there, which is 3.5 units along.
+        let currentTime = 5.0f
         let keepReplayingStateTransition = 
-            Replaying.KeepReplaying(beforeState, 5.0f, StateTestUtilities.measurePositioner)
+            Replaying.KeepReplaying(beforeState, currentTime, StateTestUtilities.measurePositioner)
         let newState = keepReplayingStateTransition.NewState
 
         let sideEffect = keepReplayingStateTransition.SideEffects |> List.ofSeq |> List.head
         let stateAfterMovingMeasure = sideEffect.Invoke(newState)
 
         // The triple (0.9354143,1.870829,2.806243) is 3.5 units long - 0.7 * 5 sec. 
-        test <@ stateAfterMovingMeasure.Measure.transform.position = Vector(0.9354143f,1.870829f,2.806243f) @>
-        test <@ stateAfterMovingMeasure.Measure.transform.rotation = StateTestUtilities.ninetyDegreesAroundZ @>
+        test <@ stateAfterMovingMeasure.MeasureLocation.Position = Vector(0.9354143f,1.870829f,2.806243f) @>
+        test <@ stateAfterMovingMeasure.MeasureLocation.Rotation = StateTestUtilities.ninetyDegreesAroundZ @>
 
     [<Test>]
     let ``Continues rotating but not translating if the entire rotation has been traversed``() = 
@@ -212,8 +211,8 @@ module ReplayingTests =
         let secondLegSideEffect = keepReplayingSecondLegTransition.SideEffects |> List.ofSeq |> List.head
         let stateAfterMovingSecondLeg = secondLegSideEffect.Invoke(newState)
 
-        test <@ stateAfterMovingSecondLeg.Measure.transform.position = StateTestUtilities.solutionThirdPosition @>
-        test <@ stateAfterMovingSecondLeg.Measure.transform.rotation = Rotation(0.0f, 170.0f, 90.0f, 0.0f) @>
+        test <@ stateAfterMovingSecondLeg.MeasureLocation.Position = StateTestUtilities.solutionThirdPosition @>
+        test <@ stateAfterMovingSecondLeg.MeasureLocation.Rotation = Rotation(0.0f, 170.0f, 90.0f, 0.0f) @>
 
     [<Test>]
     let ``Can tell you what state you are in``() = 

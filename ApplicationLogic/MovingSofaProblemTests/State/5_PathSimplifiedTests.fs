@@ -10,55 +10,49 @@ open Domain
 
 module PathSimplifiedTests =
 
-    let simplifyPathFrom state = PathSimplified.SimplifyPath(state, fun state -> state)
+    let simplifyPathFrom state = 
+        PathSimplified.SimplifyPath(state
+                                   , StateTestUtilities.measurePositionAndRotationAfterDropped
+                                   , fun state -> state)
 
     [<Test>]
     let ``Initializes the initial path with simplified path ending in the point at which the measure was dropped``() = 
         let stoppedFollowingState = StateTestUtilities.stoppedFollowingState () |> fst
-        StateTestUtilities.setInitialPathAndMeasurePosition stoppedFollowingState
-
         let pathSimplifiedState = (simplifyPathFrom stoppedFollowingState).NewState
 
         let expectedInitialPath = PathHolder()
-        expectedInitialPath.Add(StateTestUtilities.origin, StateTestUtilities.zeroRotation, -0.2f)
-        expectedInitialPath.Add(StateTestUtilities.measurePositionAfterDropped
-                               , StateTestUtilities.zeroRotation
-                               , -0.2f)
+        expectedInitialPath.Add(StateTestUtilities.measureWhenStartedFollowing, 0.0f)
+        expectedInitialPath.Add(StateTestUtilities.measurePositionAndRotationAfterDropped, 0.1f)
 
         test <@ pathSimplifiedState.InitialPath = expectedInitialPath @>
 
     [<Test>]
     let ``Initializes the path to replay with the simplified initial path``() = 
         let stoppedFollowingState = StateTestUtilities.stoppedFollowingState () |> fst
-        StateTestUtilities.setInitialPathAndMeasurePosition stoppedFollowingState
-
         let pathSimplifiedState = (simplifyPathFrom stoppedFollowingState).NewState
 
         let expectedPathToReplay = PathHolder()
-        expectedPathToReplay.Add(StateTestUtilities.origin, StateTestUtilities.zeroRotation, -0.2f)
-        expectedPathToReplay.Add(StateTestUtilities.measurePositionAfterDropped
-                                , StateTestUtilities.zeroRotation
-                                , -0.2f)
+        expectedPathToReplay.Add(StateTestUtilities.measureWhenStartedFollowing, 0.0f)
+        expectedPathToReplay.Add(StateTestUtilities.measurePositionAndRotationAfterDropped, 0.1f)
 
         test <@ pathSimplifiedState.PathToReplay = expectedPathToReplay @>
 
     [<Test>]
     let ``First step is first step of simplified path``() = 
         let stoppedFollowingState = StateTestUtilities.stoppedFollowingState () |> fst
-        StateTestUtilities.setInitialPathAndMeasurePosition stoppedFollowingState
 
         let pathSimplifiedState = (simplifyPathFrom stoppedFollowingState).NewState
+        let first = StateTestUtilities.measureWhenStartedFollowing
         test <@ GameState.FirstStep(pathSimplifiedState).Value.StartNode.Value = 
-                    Breadcrumb(StateTestUtilities.origin, StateTestUtilities.zeroRotation, -0.2f) @>
+                    Breadcrumb(first.Position, first.Rotation, 0.0f) @>
+
+        let second = StateTestUtilities.measurePositionAndRotationAfterDropped
         test <@ GameState.FirstStep(pathSimplifiedState).Value.EndNode.Value = 
-                    Breadcrumb(StateTestUtilities.measurePositionAfterDropped
-                              , StateTestUtilities.zeroRotation
-                              , -0.2f) @>
+                    Breadcrumb(second.Position, second.Rotation, 0.1f) @>
 
     [<Test>]
     let ``Has no current path step``() = 
         let stoppedFollowingState = StateTestUtilities.stoppedFollowingState () |> fst
-        StateTestUtilities.setInitialPathAndMeasurePosition stoppedFollowingState
 
         let pathSimplifiedState = (simplifyPathFrom stoppedFollowingState).NewState
         test <@ pathSimplifiedState.CurrentPathStep = MaybePathStep.None @>
@@ -85,9 +79,13 @@ module PathSimplifiedTests =
 
     [<Test>]
     let ``Starts finding the solution and then transitions to SolutionFound in the second side effect``() = 
-        let mutable solutionFinderCalled = false
         let (beforeState, _) = StateTestUtilities.followingState ()
-        let stateTransition = PathSimplified.SimplifyPath(beforeState, fun state -> solutionFinderCalled <- true; state)
+
+        let mutable solutionFinderCalled = false
+        let stateTransition = 
+            PathSimplified.SimplifyPath(beforeState
+                                       , StateTestUtilities.measurePositionAndRotationAfterDropped
+                                       , fun state -> solutionFinderCalled <- true; state)
 
         let newState = stateTransition.NewState
         let sideEffect = stateTransition.SideEffects |> List.ofSeq |> List.item 1

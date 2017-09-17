@@ -42,6 +42,7 @@ namespace Domain
 			// Dummy values for ease of testing: 
 			var noRotation = new Rotation(0.0f, 0.0f, 0.0f, 0.0f);
             var ninetyDegreesAboutZ = new Rotation(0.0f, 0.0f, 90.0f, 0.0f);
+            var minus180DegreesAboutY = new Rotation(0.0f, -180.0f, 0.0f, 0.0f);
             var ninetyDegreesAboutZAnd180AboutY = new Rotation(0.0f, 180.0f, 90.0f, 0.0f);
             if(rotation1 == rotation2)
             {
@@ -51,6 +52,10 @@ namespace Domain
             {
                 return 90.0f;
             }
+			if (rotation1 == minus180DegreesAboutY && rotation2 == ninetyDegreesAboutZ)
+			{
+				return 90.0f;
+			}
 			if (rotation1 == ninetyDegreesAboutZ && rotation2 == ninetyDegreesAboutZAnd180AboutY)
 			{
 				return 180.0f;

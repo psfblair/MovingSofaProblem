@@ -15,7 +15,6 @@ module SpatialCalculationsTests =
     let noRotation = Rotation(0.0f, 0.0f, 0.0f, 0.0f)
     let ninetyDegreesAboutZ = Rotation(0.0f, 0.0f, 90.0f, 0.0f)
 
-
     [<Test>]
     let ``SpatialCalculations: Calculates position and orientation relative to one unit in front of the camera``() =
         let cameraLoc = Situation(Vector(2.0f, 3.0f, 4.0f), Rotation(90.0f, 179.0f, 270.0f, 90.0f), forwardOneZFromOrigin)
@@ -72,21 +71,24 @@ module SpatialCalculationsTests =
         let segment = PathSegment(Breadcrumb(originVector, ninetyDegreesAboutZ, 1.5f), 
                                   Breadcrumb(unitX, ninetyDegreesAboutZ, 1.5f))
 
-        test <@ SpatialCalculations.IsMovementComplete(segment, unitX, ninetyDegreesAboutZ) = true @>
+        test <@ SpatialCalculations.IsMovementComplete(segment, 
+                    PositionAndRotation(unitX, ninetyDegreesAboutZ)) = true @>
 
     [<Test>]
     let ``SpatialCalculations: Indicates if translation is not complete``() =
         let segment = PathSegment(Breadcrumb(originVector, ninetyDegreesAboutZ, 1.5f), 
                                   Breadcrumb(unitX, ninetyDegreesAboutZ, 1.5f))
 
-        test <@ SpatialCalculations.IsMovementComplete(segment, Vector(0.5f, 0.0f, 0.0f), ninetyDegreesAboutZ) = false @>
+        test <@ SpatialCalculations.IsMovementComplete(segment, 
+                    PositionAndRotation(Vector(0.5f, 0.0f, 0.0f), ninetyDegreesAboutZ)) = false @>
 
     [<Test>]
     let ``SpatialCalculations: Indicates if rotation is not complete``() =
         let segment = PathSegment(Breadcrumb(originVector, noRotation, 1.5f), 
                                   Breadcrumb(unitX, ninetyDegreesAboutZ, 1.5f))
 
-        test <@ SpatialCalculations.IsMovementComplete(segment, unitX, Rotation(0.0f, 0.0f, 0.0f, 45.0f)) = false @>
+        test <@ SpatialCalculations.IsMovementComplete(segment, 
+                    PositionAndRotation(unitX, Rotation(0.0f, 0.0f, 0.0f, 45.0f))) = false @>
 
     [<Test>]
     let ``SpatialCalculations: Calculates new position if there is no rotation``() =

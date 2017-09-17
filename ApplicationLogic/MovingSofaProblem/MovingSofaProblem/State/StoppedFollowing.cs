@@ -2,11 +2,11 @@ using System;
 
 #if UNIT_TESTS
 using Situation = Domain.Situation;
-using Measure = Domain.Measure;
 #else
-using CameraLocation = UnityEngine.Transform;
-using Measure = UnityEngine.GameObject;
+using Situation = UnityEngine.Transform;
 #endif
+
+using MovingSofaProblem.Path;
 
 namespace MovingSofaProblem.State
 {
@@ -15,17 +15,18 @@ namespace MovingSofaProblem.State
         override public string SayableStateDescription { get { return "Simplifying the route."; } }
         override public string SayableStatus { get { return "I have stopped following you and am simplifying the route."; } }
 
-        private StoppedFollowing(GameState priorState, float cameraY) : base(GameMode.StoppedFollowing, priorState)
+		private StoppedFollowing(GameState priorState
+							   , PositionAndRotation currentPositionAndRotation
+							   , Situation cameraSituation) : base(GameMode.StoppedFollowing, priorState)
         {
             // Make sure we get the last spot before we stop following.
-            priorState.InitialPath.Add(priorState.Measure.transform.position
-                                       , priorState.Measure.transform.rotation
-                                       , cameraY);
+            priorState.InitialPath.Add(currentPositionAndRotation, cameraSituation.position.y);
         }
 
         public static StateTransition StopFollowing(GameState currentState
-                                                   , Situation cameraTransform
-                                                   , Action<Measure> measureReleaser
+                                                   , PositionAndRotation currentPositionAndRotation 
+                                                   , Situation cameraSituation
+                                                   , Action measureReleaser
                                                    , Action spatialMappingObserverStopper)
         {
             if (currentState.Mode != GameMode.Following)
@@ -34,10 +35,10 @@ namespace MovingSofaProblem.State
                 return new StateTransition(currentState, errorSideEffects);
             }
 
-            var newState = new StoppedFollowing(currentState, cameraTransform.position.y);
+            var newState = new StoppedFollowing(currentState, currentPositionAndRotation, cameraSituation);
 
             Func<GameState, GameState> putDownMeasure =
-                state => { measureReleaser(state.Measure); return state; };
+                state => { measureReleaser(); return state; };
 
             // TODO Show spinner as side effect
 

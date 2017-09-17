@@ -7,7 +7,7 @@ using Situation = Domain.Situation;
 using Vector = Domain.Vector;
 using Rotation = Domain.Rotation;
 #else
-using CameraLocation = UnityEngine.Transform;
+using Situation = UnityEngine.Transform;
 using Vector = UnityEngine.Vector3;
 using Rotation = UnityEngine.Quaternion;
 #endif
@@ -57,8 +57,10 @@ namespace MovingSofaProblem.Path
             return (float) (Math.Acos(dotProduct) * 180 / Math.PI);
         }
 
-		internal static bool IsMovementComplete(PathSegment pathSegment, Vector currentPosition, Rotation currentRotation) {
-            return pathSegment.End.Position == currentPosition && pathSegment.End.Rotation == currentRotation;
+		internal static bool IsMovementComplete(PathSegment pathSegment, 
+                                                PositionAndRotation currentPositionAndRotation) {
+            return pathSegment.End.Position == currentPositionAndRotation.Position 
+                      && pathSegment.End.Rotation == currentPositionAndRotation.Rotation;
         }
 
         internal static PositionAndRotation InterpolatedPositionAndRotation (

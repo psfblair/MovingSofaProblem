@@ -13,6 +13,16 @@ module StoppedFollowingTests =
     let stopFollowingFrom state =
         StoppedFollowing.StopFollowing(
               state
+            , StateTestUtilities.measureWhenStoppedFollowing
+            , StateTestUtilities.cameraAtOrigin
+            , fun gameObject -> ()
+            , fun state -> state
+        )
+
+    let stopFollowingAt state x y z =
+        StoppedFollowing.StopFollowing(
+              state
+            , StateTestUtilities.facingRotWithPosXYZ x y z
             , StateTestUtilities.cameraAtOrigin
             , fun gameObject -> ()
             , fun state -> state
@@ -20,33 +30,24 @@ module StoppedFollowingTests =
 
     [<Test>]
     let ``Initializes the initial path with the point at which it stopped following``() = 
-        let positionWhenStopped = Vector(1.0f, 2.0f, 3.0f)
         let (beforeState, _) = StateTestUtilities.followingState ()
-        beforeState.Measure.transform.position <- positionWhenStopped
 
-        let expectedPathBeforeStopped = PathHolder()
-        expectedPathBeforeStopped.Add(StateTestUtilities.origin, StateTestUtilities.zeroRotation, 0.0f)
-
-        test <@ beforeState.InitialPath = expectedPathBeforeStopped @>
-
-        let newState = (stopFollowingFrom beforeState).NewState
+        let positionWhenStopped = StateTestUtilities.facingRotWithPosXYZ 1.0f 2.0f 3.0f
+        let newState = (stopFollowingAt beforeState 1.0f 2.0f 3.0f).NewState
 
         let expectedInitialPath = PathHolder()
-        expectedInitialPath.Add(StateTestUtilities.origin, StateTestUtilities.zeroRotation, 0.0f)
-        expectedInitialPath.Add(positionWhenStopped, StateTestUtilities.zeroRotation, 0.0f)
+        expectedInitialPath.Add(StateTestUtilities.measureWhenStartedFollowing, 0.0f)
+        expectedInitialPath.Add(positionWhenStopped, 0.0f)
           
         test <@ newState.InitialPath = expectedInitialPath @>
 
     [<Test>]
     let ``Does not initialize the path to replay``() = 
-        let positionWhenStopped = Vector(1.0f, 2.0f, 3.0f)
         let (beforeState, _) = StateTestUtilities.followingState ()
-        beforeState.Measure.transform.position <- positionWhenStopped
-
         test <@ beforeState.PathToReplay = PathHolder() @>
 
         let newState = (stopFollowingFrom beforeState).NewState
-        test <@ beforeState.PathToReplay = PathHolder() @>
+        test <@ newState.PathToReplay = PathHolder() @>
 
     [<Test>]
     let ``Has no current path step or first step``() = 
@@ -72,6 +73,7 @@ module StoppedFollowingTests =
         let stateTransition = 
             StoppedFollowing.StopFollowing(
                   beforeState
+                , StateTestUtilities.measureWhenStoppedFollowing
                 , StateTestUtilities.cameraAtOrigin
                 , fun gameObject -> measureReleased <- true; ()
                 , fun state -> state
@@ -105,6 +107,7 @@ module StoppedFollowingTests =
         let stateTransition = 
             StoppedFollowing.StopFollowing(
                   beforeState
+                , StateTestUtilities.measureWhenStoppedFollowing
                 , StateTestUtilities.cameraAtOrigin
                 , fun gameObject -> ()
                 , fun state -> spatialMappingObserverStopped <- true; state

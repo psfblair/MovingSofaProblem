@@ -10,9 +10,20 @@ open Domain
 
 module FollowingTests =
 
+    let startFollowingAt state x y z =
+        Following.StartFollowing(
+              state
+            , StateTestUtilities.facingRotWithPosXYZ x y z
+            , StateTestUtilities.cameraAtOrigin
+            , fun state -> state
+            , fun state -> state
+            , StateTestUtilities.measurePositioner
+        )
+
     let startFollowingFrom state =
         Following.StartFollowing(
               state
+            , StateTestUtilities.measureWhenStartedFollowing
             , StateTestUtilities.cameraAtOrigin
             , fun state -> state
             , fun state -> state
@@ -22,14 +33,14 @@ module FollowingTests =
     [<Test>]
     let ``Initializes initial path to measure's position and camera's Y``() = 
         let (beforeState, _) = StateTestUtilities.measuringState ()
-        beforeState.Measure.transform.position <- Vector(5.0f, 4.0f, 3.0f)
-        let stateTransition = startFollowingFrom beforeState
+        let stateTransition = startFollowingAt beforeState 5.0f 4.0f 3.0f
 
         let stateAfterTransition = stateTransition.NewState
         let initialPath = stateAfterTransition.InitialPath.path |> List.ofSeq
 
         test <@ List.length initialPath = 1 @>
-        test <@ List.head initialPath = Breadcrumb(Vector(5.0f, 4.0f, 3.0f), StateTestUtilities.zeroRotation, 0.0f) @>
+        test <@ List.head initialPath = 
+                    Breadcrumb(Vector(5.0f, 4.0f, 3.0f), StateTestUtilities.facingCameraRotation, 0.0f) @>
 
     [<Test>]
     let ``Has no current path step or first step``() = 
@@ -55,6 +66,7 @@ module FollowingTests =
         let stateTransition = 
             Following.StartFollowing(
                   StateTestUtilities.measuringState () |> fst
+                , StateTestUtilities.measureWhenStartedFollowing
                 , StateTestUtilities.cameraAtOrigin
                 , fun state -> boundingBoxDisabled <- true; state
                 , fun state -> state
@@ -75,6 +87,7 @@ module FollowingTests =
         let stateTransition = 
             Following.StartFollowing(
                   StateTestUtilities.measuringState () |> fst
+                , StateTestUtilities.measureWhenStartedFollowing
                 , StateTestUtilities.cameraAtOrigin
                 , fun state -> state
                 , fun state -> spatialMappingObserverStarted <- true; state
@@ -94,6 +107,7 @@ module FollowingTests =
         let stateTransition = 
             Following.StartFollowing(
                   StateTestUtilities.measuringState () |> fst
+                , StateTestUtilities.facingRotWithPosXYZ 5.0f 6.0f 7.0f
                 , StateTestUtilities.cameraAtOrigin
                 , fun state -> state
                 , fun state -> state
@@ -108,13 +122,15 @@ module FollowingTests =
         let expectedNewPosition = Vector(0.0f, -0.2f, 1.0f)
         let expectedCameraY = 0.0f
 
-        test <@ postMoveState.Measure.transform.position = expectedNewPosition @>
-        test <@ postMoveState.Measure.transform.rotation = StateTestUtilities.facingCameraRotation @>
+        test <@ postMoveState.MeasureLocation = PositionAndRotation(
+                    expectedNewPosition, StateTestUtilities.facingCameraRotation) @>
 
         let initialPath = postMoveState.InitialPath.path |> List.ofSeq
         test <@ List.length initialPath = 2 @>
-        test <@ List.head initialPath = Breadcrumb(StateTestUtilities.origin, StateTestUtilities.zeroRotation, 0.0f) @>
-        test <@ List.item 1 initialPath = Breadcrumb(expectedNewPosition, StateTestUtilities.facingCameraRotation, expectedCameraY) @>
+        test <@ List.head initialPath = 
+                    Breadcrumb(Vector(5.0f, 6.0f, 7.0f), StateTestUtilities.facingCameraRotation, 0.0f) @>
+        test <@ List.item 1 initialPath = 
+                    Breadcrumb(expectedNewPosition, StateTestUtilities.facingCameraRotation, expectedCameraY) @>
 
     [<Test>]
     let ``Speaks the state in the fourth side effect``() = 
@@ -123,6 +139,7 @@ module FollowingTests =
         let stateTransition = 
             Following.StartFollowing(
                   measuringState
+                , StateTestUtilities.measureWhenStartedFollowing
                 , StateTestUtilities.cameraAtOrigin
                 , fun state -> state
                 , fun state -> state
@@ -137,21 +154,30 @@ module FollowingTests =
 
     [<Test>]
     let ``Allows for steps along the path to be added and moves the measure to that location``() = 
-        let (measuringState, _) = StateTestUtilities.measuringState ()      
-        let stateTransition = startFollowingFrom measuringState
-        let measureInitializingSideEffect = stateTransition.SideEffects |> List.ofSeq |> List.item 1
-        let initializedMeasureState = measureInitializingSideEffect.Invoke(stateTransition.NewState)
+        let (measuringState, _) = StateTestUtilities.measuringState ()    
+        // Uses StateTestUtilities.measureWhenStartedFollowing & camera at origin
+        let stateTransition = startFollowingFrom measuringState 
+        let measureRepositioningSideEffect = 
+            stateTransition.SideEffects |> List.ofSeq |> List.item 2
+        let measureInFrontOfCameraState = measureRepositioningSideEffect.Invoke(stateTransition.NewState)
 
-        let cameraPositionAfterMotion = Vector(0.0f, 1.0f, 3.0f)
+        test <@ measureInFrontOfCameraState.MeasureLocation = 
+                    StateTestUtilities.initializedMeasurePositionAndRotation @>
+        
+        let cameraYAfterMotion = 0.4f
+        let cameraPositionAfterMotion = Vector(0.0f, cameraYAfterMotion, 3.0f)
         let cameraRotationAfterMotion = Rotation(15.0f, 90.0f, 30.0f, 60.0f) // Our dummy rotation represents Euler angles
-        let cameraLocationAfterMotion = Situation(cameraPositionAfterMotion, cameraRotationAfterMotion, Vector(0.0f, 0.0f, 1.0f))
+        let cameraLocationAfterMotion = 
+            Situation(cameraPositionAfterMotion, cameraRotationAfterMotion, Vector(0.0f, 0.0f, 1.0f))
 
         let stateTransitionTriggeredByMotion =
-            Following.KeepFollowing(initializedMeasureState, cameraLocationAfterMotion, StateTestUtilities.measurePositioner)
+            Following.KeepFollowing(measureInFrontOfCameraState
+                                   , cameraLocationAfterMotion
+                                   , StateTestUtilities.measurePositioner)
 
         let newState = stateTransitionTriggeredByMotion.NewState
         test <@ newState.Mode = GameMode.Following @>
-        test <@ newState.InitialPath.path.Count = 1 @>
+        test <@ newState.InitialPath.path.Count = 2 @>
 
         let sideEffects = stateTransitionTriggeredByMotion.SideEffects
         test <@ sideEffects.Count = 1 @>
@@ -159,15 +185,21 @@ module FollowingTests =
         let measureMovingSideEffect = sideEffects |> List.ofSeq |> List.head
         let newStateAfterSideEffects = measureMovingSideEffect.Invoke(newState)
 
-        let expectedNewPosition = Vector(0.0f, 0.8f, 4.0f) // Camera position is not measure position
-        let expecteNewRotation = Rotation(0.0f, -90.0f, 0.0f, 0.0f) // Rotation facing camera rotation, only rotate about Y; others stay 0
-        test <@ newStateAfterSideEffects.Measure.transform.position = expectedNewPosition @>
-        test <@ newStateAfterSideEffects.Measure.transform.rotation = expecteNewRotation @>
+        let expectedNewPosition = Vector(0.0f, 0.2f, 4.0f) // Camera position is not measure position
+        let expectedNewRotation = Rotation(0.0f, -90.0f, 0.0f, 0.0f) // Rotation facing camera rotation, only rotate about Y; others stay 0
+
+        test <@ newStateAfterSideEffects.MeasureLocation = 
+                    PositionAndRotation(expectedNewPosition, expectedNewRotation) @>
 
         let currentPath = newStateAfterSideEffects.InitialPath.path
-        test <@ currentPath.Count = 2 @>
-        test <@ currentPath.First.Value = Breadcrumb(StateTestUtilities.origin, StateTestUtilities.zeroRotation, 0.0f) @>
-        test <@ currentPath.Last.Value = Breadcrumb(expectedNewPosition, expecteNewRotation, 1.0f) @>
+        test <@ currentPath.Count = 3 @>
+        test <@ currentPath.First.Value = 
+                    Breadcrumb(StateTestUtilities.measureWhenStartedFollowing.Position, 
+                               StateTestUtilities.measureWhenStartedFollowing.Rotation, 0.0f) @>
+        test <@ currentPath.First.Next.Value = 
+                    Breadcrumb(StateTestUtilities.initializedMeasurePositionAndRotation.Position
+                              , StateTestUtilities.initializedMeasurePositionAndRotation.Rotation, 0.0f) @>
+        test <@ currentPath.Last.Value = Breadcrumb(expectedNewPosition, expectedNewRotation, cameraYAfterMotion) @>
 
     [<Test>]
     let ``Can tell you what state you are in``() = 

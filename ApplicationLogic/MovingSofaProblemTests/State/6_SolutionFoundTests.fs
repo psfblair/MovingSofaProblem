@@ -12,7 +12,6 @@ module SolutionFoundTests =
     [<Test>]
     let ``Initializes the SolutionFound state with the supplied solution``() = 
         let (pathSimplifiedState, _) = StateTestUtilities.pathSimplifiedState ()
-        StateTestUtilities.setInitialPathAndMeasurePosition pathSimplifiedState
         pathSimplifiedState.PathToReplay <- pathSimplifiedState.InitialPath
 
         let solutionFoundState = 
@@ -23,7 +22,6 @@ module SolutionFoundTests =
     [<Test>]
     let ``Does not change the initial path``() = 
         let (pathSimplifiedState, _) = StateTestUtilities.pathSimplifiedState ()
-        StateTestUtilities.setInitialPathAndMeasurePosition pathSimplifiedState
 
         let solutionFoundState = 
             SolutionFound.HasFoundSolution(pathSimplifiedState, StateTestUtilities.solution ())
@@ -33,7 +31,6 @@ module SolutionFoundTests =
     [<Test>]
     let ``First step is first step of solution``() = 
         let (pathSimplifiedState, _) = StateTestUtilities.pathSimplifiedState ()
-        StateTestUtilities.setInitialPathAndMeasurePosition pathSimplifiedState
 
         let solutionFoundState = 
             SolutionFound.HasFoundSolution(pathSimplifiedState, StateTestUtilities.solution ())
@@ -48,7 +45,6 @@ module SolutionFoundTests =
     [<Test>]
     let ``Has no current path step``() = 
         let (pathSimplifiedState, _) = StateTestUtilities.pathSimplifiedState ()
-        StateTestUtilities.setInitialPathAndMeasurePosition pathSimplifiedState
 
         let solutionFoundState = 
             SolutionFound.HasFoundSolution(pathSimplifiedState, StateTestUtilities.solution ())

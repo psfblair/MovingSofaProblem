@@ -25,9 +25,9 @@ namespace MovingSofaProblem.Path
             this.path = path;
         }
 
-        public void Add(Vector position, Rotation rotation, float cameraY)
+        public void Add(PositionAndRotation positionAndRotation, float cameraY)
         {
-            var breadcrumb = new Breadcrumb(position, rotation, cameraY);
+            var breadcrumb = new Breadcrumb(positionAndRotation.Position, positionAndRotation.Rotation, cameraY);
             path.AddLast(breadcrumb);
         }
 
@@ -125,7 +125,7 @@ namespace MovingSofaProblem.Path
 		public override string ToString()
 		{
             var itemStrings = path.Select(item => item.ToString());
-            return "Path: {" + String.Join(" ,\n", itemStrings) + "}";
+            return "Path: { " + String.Join(" ,\n\t", itemStrings) + " }\n";
 		}
 
         public override bool Equals(object obj)
