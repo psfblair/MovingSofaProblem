@@ -1,0 +1,82 @@
+﻿<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Library</OutputType>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <ProjectGuid>{E8F2A8F8-615A-443C-96C6-B6C18B5B53FC}</ProjectGuid>
+    <Description>Module to handle state machine for MovingSofaProblem.</Description>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType></DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <IntermediateOutputPath>obj\Release\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DefineConstants>UNIT_TESTS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <WarningLevel>4</WarningLevel>
+    <DefineConstants>UNIT_TESTS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release Single Project|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release Single Project</OutputPath>
+    <IntermediateOutputPath>obj\Release\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Release Single Project'">
+      <ItemGroup>
+        <Reference Include="UnityEngine">
+        <HintPath>..\..\..\..\..\..\..\Applications\Unity\Unity.app\Contents\Managed\UnityEngine.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+    </Otherwise>
+  </Choose>
+  <ItemGroup>
+  <Compile Include="Functional\Option\EmptyArray.cs" />
+  <Compile Include="Functional\Option\ExtensionMethods.cs" />
+  <Compile Include="Functional\Option\Option.cs" />
+  <Compile Include="Functional\Option\OptionPatternMatcher.cs" />
+  <Compile Include="MovingSofaProblem\Path\Breadcrumb.cs" />
+  <Compile Include="MovingSofaProblem\Path\PathHolder.cs" />
+  <Compile Include="MovingSofaProblem\Path\PathSegment.cs" />
+  <Compile Include="MovingSofaProblem\Path\PathStep.cs" />
+  <Compile Include="MovingSofaProblem\Path\PositionAndRotation.cs" />
+  <Compile Include="MovingSofaProblem\Path\SpatialCalculations.cs" />
+  <Compile Include="MovingSofaProblem\State\FinishedReplaying.cs" />
+  <Compile Include="MovingSofaProblem\State\Following.cs" />
+  <Compile Include="MovingSofaProblem\State\GameMode.cs" />
+  <Compile Include="MovingSofaProblem\State\GameState.cs" />
+  <Compile Include="MovingSofaProblem\State\Measuring.cs" />
+  <Compile Include="MovingSofaProblem\State\PathSimplified.cs" />
+  <Compile Include="MovingSofaProblem\State\Replaying.cs" />
+  <Compile Include="MovingSofaProblem\State\SolutionFound.cs" />
+  <Compile Include="MovingSofaProblem\State\Starting.cs" />
+  <Compile Include="MovingSofaProblem\State\StateTransition.cs" />
+  <Compile Include="MovingSofaProblem\State\StoppedFollowing.cs" />
+  <Compile Include="MovingSofaProblem\State\WaitingToReplay.cs" />
+  <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DummyDomain\DummyDomain.csproj">
+      <Project>{AF7E2C53-390C-47ED-BFF7-C617F27D8A02}</Project>
+      <Name>DummyDomain</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

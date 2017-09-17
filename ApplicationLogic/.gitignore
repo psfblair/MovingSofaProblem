@@ -2,9 +2,9 @@
 *~
 
 #Unignore solution files
-*.sln
-*.csproj
-*.fsproj
+!*.sln
+!*.csproj
+!*.fsproj
 
 #build
 [Oo]bj/
