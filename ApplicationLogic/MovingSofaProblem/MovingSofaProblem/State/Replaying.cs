@@ -6,9 +6,6 @@ namespace MovingSofaProblem.State
 {
     public sealed class Replaying : GameState
     {
-        private static float replayingTranslationSpeed = 0.7f; // units/sec
-        private static float replayingRotationSpeed = 20.0f; // degrees/sec
-
         private string whatYouCanSayNow = "Say 'Next' to replay the next step, 'Again' to replay the current step, or 'Replay solution' to start over from the beginning.";
         override public string SayableStateDescription { get { return "Replaying the solution. " + whatYouCanSayNow; } }
         override public string SayableStatus { get { return "I am in the middle of replaying the solution. You can " + whatYouCanSayNow; } }
@@ -80,8 +77,8 @@ namespace MovingSofaProblem.State
                             SpatialCalculations.InterpolatedPositionAndRotation(
                                 currentTime
                                 , state.SegmentReplayStartTime
-                                , replayingTranslationSpeed
-                                , replayingRotationSpeed
+                                , state.ReplayingTranslationSpeedUnitsPerSec
+                                , state.ReplayingRotationSpeedDegreesPerSec
                                 , currentPathStep.PathSegment);
                         state.MeasureLocation = newPositionAndRotation;
                         moveMeasure(newPositionAndRotation);

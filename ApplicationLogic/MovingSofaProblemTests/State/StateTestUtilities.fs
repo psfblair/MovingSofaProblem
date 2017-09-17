@@ -72,9 +72,19 @@ module StateTestUtilities =
 (************************************************* STATE CONSTRUCTORS *************************************************)
 (**********************************************************************************************************************)
 
+    let replayingTranslationSpeed = 0.7f; // units/sec
+    let replayingRotationSpeed = 20.0f; // degrees/sec
+
     let initialState () = 
         let spokenState = ref ""
-        let startingTransition = Starting.Start(cameraAtOrigin, -0.2f, fun text -> spokenState := text)
+        let startingTransition = 
+            Starting.Start(
+                cameraAtOrigin
+                , Vector(0.0f, -0.2f, 0.0f)
+                , replayingTranslationSpeed
+                , replayingRotationSpeed
+                , fun text -> spokenState := text
+            )
         (startingTransition.NewState, spokenState)
 
     let measuringState () = 

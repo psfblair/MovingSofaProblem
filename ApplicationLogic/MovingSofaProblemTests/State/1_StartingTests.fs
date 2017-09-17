@@ -10,7 +10,14 @@ type Vector = Domain.Vector
 module StartingTests =
     [<Test>]
     let ``Initializes the state``() = 
-        let startingTransition = Starting.Start(StateTestUtilities.cameraAtOrigin, -0.2f, fun text -> ())
+        let startingTransition = 
+            Starting.Start(
+                StateTestUtilities.cameraAtOrigin, 
+                Vector(0.0f, -0.2f, 0.0f), 
+                0.7f,
+                20.0f,
+                fun text -> ()
+            )
         let sideEffects = startingTransition.SideEffects
 
         let state = startingTransition.NewState
@@ -26,7 +33,9 @@ module StartingTests =
         let startingTransition = 
             Starting.Start(
                 StateTestUtilities.cameraAtOrigin, 
-                -0.2f, 
+                Vector(0.0f, -0.2f, 0.0f), 
+                0.7f,
+                20.0f,
                 fun text -> spokenState <- text
             )
         let sideEffects = startingTransition.SideEffects |> List.ofSeq
@@ -43,7 +52,9 @@ module StartingTests =
         let startingTransition = 
             Starting.Start(
                 StateTestUtilities.cameraAtOrigin, 
-                -0.2f, 
+                Vector(0.0f, -0.2f, 0.0f), 
+                0.7f,
+                20.0f,
                 fun text -> spokenStateRef := text
             )
         let startingState = startingTransition.NewState

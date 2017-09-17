@@ -19,10 +19,12 @@ namespace MovingSofaProblem.State
         private readonly Action<string> statusSpeaker;
 
         // For initialization from zero
-        protected GameState(GameMode gameMode,
-                            Situation cameraSituation,
-                            float yCarryPositionRelativeToCamera,
-                            Action<string> statusSpeaker)
+        protected GameState(GameMode gameMode
+                            , Situation cameraSituation
+                            , Vector carryPositionRelativeToCamera
+            				, float replayingTranslationSpeedUnitsPerSec
+            				, float replayingRotationSpeedDegreesPerSec
+							, Action<string> statusSpeaker)
         {
             this.Mode = gameMode;
 
@@ -30,9 +32,12 @@ namespace MovingSofaProblem.State
             this.PathToReplay = new PathHolder();
             this.CurrentPathStep = Option.None;
             this.SegmentReplayStartTime = 0;
-            this.CarryPositionRelativeToCamera = 
-                new Vector(0.0f, yCarryPositionRelativeToCamera, 0.0f);
-            this.statusSpeaker = statusSpeaker;
+
+			this.CarryPositionRelativeToCamera = carryPositionRelativeToCamera;
+			this.ReplayingTranslationSpeedUnitsPerSec = replayingTranslationSpeedUnitsPerSec;
+			this.ReplayingRotationSpeedDegreesPerSec = replayingRotationSpeedDegreesPerSec;
+
+			this.statusSpeaker = statusSpeaker;
 
 			this.MeasureLocation = SpatialCalculations.ReorientRelativeToOneUnitForwardFrom(
 				cameraSituation,
@@ -44,22 +49,30 @@ namespace MovingSofaProblem.State
         protected GameState(GameMode gameMode, GameState priorState)
         {
             this.Mode = gameMode;
+			this.MeasureLocation = priorState.MeasureLocation;
 
-            this.InitialPath = priorState.InitialPath;
+			this.InitialPath = priorState.InitialPath;
             this.PathToReplay = priorState.PathToReplay;
             this.CurrentPathStep = priorState.CurrentPathStep;
             this.SegmentReplayStartTime = priorState.SegmentReplayStartTime;
-            this.MeasureLocation = priorState.MeasureLocation;
+
             this.CarryPositionRelativeToCamera = priorState.CarryPositionRelativeToCamera;
-            this.statusSpeaker = priorState.statusSpeaker;
+			this.ReplayingTranslationSpeedUnitsPerSec = priorState.ReplayingTranslationSpeedUnitsPerSec;
+			this.ReplayingRotationSpeedDegreesPerSec = priorState.ReplayingRotationSpeedDegreesPerSec;
+
+			this.statusSpeaker = priorState.statusSpeaker;
         }
 
         public GameMode   Mode                      { get; protected set; }
-        public PathHolder InitialPath               { get; internal set; }
+		public PositionAndRotation MeasureLocation { get; internal set; }
+
+		public PathHolder InitialPath               { get; internal set; }
         public Option<PathStep> CurrentPathStep     { get; protected set; }
         public float SegmentReplayStartTime         { get; protected set; }
-        public Vector CarryPositionRelativeToCamera { get; private set;  }
-        public PositionAndRotation MeasureLocation  { get; internal set; }
+
+		public Vector CarryPositionRelativeToCamera { get; private set; }
+		public float ReplayingTranslationSpeedUnitsPerSec { get; private set; }
+		public float ReplayingRotationSpeedDegreesPerSec  { get; private set; }
 
         public abstract string SayableStateDescription { get;  }
         public abstract string SayableStatus { get; }
