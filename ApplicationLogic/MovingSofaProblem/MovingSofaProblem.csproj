@@ -10,7 +10,8 @@
     <Description>Module to handle state machine for MovingSofaProblem.</Description>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType></DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <IntermediateOutputPath>obj\Release\</IntermediateOutputPath>
@@ -19,16 +20,17 @@
     <DefineConstants>UNIT_TESTS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>false</DebugSymbols>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug</OutputPath>
     <WarningLevel>4</WarningLevel>
     <DefineConstants>UNIT_TESTS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release Single Project|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType></DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Release Single Project</OutputPath>
+    <OutputPath>..\..\Assets\Plugins</OutputPath>
     <IntermediateOutputPath>obj\Release\</IntermediateOutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -41,10 +43,17 @@
       <ItemGroup>
         <Reference Include="UnityEngine">
         <HintPath>..\..\..\..\..\..\..\Applications\Unity\Unity.app\Contents\Managed\UnityEngine.dll</HintPath>
+        <Private>false</Private>
         </Reference>
       </ItemGroup>
     </When>
     <Otherwise>
+      <ItemGroup>
+        <ProjectReference Include="..\DummyDomain\DummyDomain.csproj">
+          <Project>{AF7E2C53-390C-47ED-BFF7-C617F27D8A02}</Project>
+          <Name>DummyDomain</Name>
+        </ProjectReference>
+      </ItemGroup>    
     </Otherwise>
   </Choose>
   <ItemGroup>
@@ -71,12 +80,6 @@
   <Compile Include="MovingSofaProblem\State\StoppedFollowing.cs" />
   <Compile Include="MovingSofaProblem\State\WaitingToReplay.cs" />
   <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DummyDomain\DummyDomain.csproj">
-      <Project>{AF7E2C53-390C-47ED-BFF7-C617F27D8A02}</Project>
-      <Name>DummyDomain</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
