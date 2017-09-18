@@ -14,17 +14,28 @@ namespace MovingSofaProblem
     public class MovingSofaGameController : MonoBehaviour
     {
         public GameObject measurePrefab;
-        private BoundingBox boundingBox;
+        public Vector3 carryPositionRelativeToCamera; // E.g. (0,-0.2,0)
+        public float replayingTranslationSpeed; // E.g. 0.7f units/sec
+        public float replayingRotationSpeed; // E.g. 20.0f degrees/sec
+
+        private GameObject measure;
+		private BoundingBox boundingBox;
         private TextToSpeechManager textToSpeechManager;
 
         private GameState currentGameState;
 
         void Start()
         {
-            boundingBox = GameObject.FindObjectOfType<BoundingBox>();
-            textToSpeechManager = GameObject.FindObjectOfType<TextToSpeechManager>();
+            boundingBox = FindObjectOfType<BoundingBox>();
+            textToSpeechManager = FindObjectOfType<TextToSpeechManager>();
 
-            var stateTransition = Starting.Start(StatusSpeaker(textToSpeechManager));
+			var stateTransition = Starting.Start(
+                Camera.main.transform,
+                carryPositionRelativeToCamera,
+                replayingTranslationSpeed,
+                replayingRotationSpeed,
+                StatusSpeaker(textToSpeechManager)
+            );
             HandleStateTransition(stateTransition);
         }
 
@@ -36,17 +47,17 @@ namespace MovingSofaProblem
                     var startingStateTransition =
                         Measuring.StartMeasuring(currentGameState
                                                 , Camera.main.transform
-                                                , MeasureCreator(measurePrefab));
+                                                , MeasureCreator(measurePrefab, measure));
                     HandleStateTransition(startingStateTransition);
                     break;
                 case GameMode.Following:
                     var followingStateTransition =
-                        Following.KeepFollowing(currentGameState, Camera.main.transform, MeasureMover);
+                        Following.KeepFollowing(currentGameState, Camera.main.transform, MeasureMover(measure));
                     HandleStateTransition(followingStateTransition);
                     break;
                 case GameMode.Replaying:
                     var keepReplayingStateTransition =
-                        Replaying.KeepReplaying(currentGameState, Time.time, MeasureMover);
+                        Replaying.KeepReplaying(currentGameState, Time.time, MeasureMover(measure));
                     HandleStateTransition(keepReplayingStateTransition);
                     break;
             }
@@ -58,18 +69,24 @@ namespace MovingSofaProblem
         {
             var stateTransition = Measuring.StartMeasuring(currentGameState
                                                           , Camera.main.transform
-                                                          , MeasureCreator(measurePrefab));
+                                                          , MeasureCreator(measurePrefab, measure));
             HandleStateTransition(stateTransition);
         }
 
         public void StartFollowing()
         {
-            boundingBox = GameObject.FindObjectOfType<BoundingBox>();
+            boundingBox = FindObjectOfType<BoundingBox>();
+            var startingMeasurePositionAndRotation =
+                new PositionAndRotation(
+                    measure.transform.position,
+                    measure.transform.rotation
+                );
             var stateTransition = Following.StartFollowing(currentGameState
+                                                          , startingMeasurePositionAndRotation
                                                           , Camera.main.transform
                                                           , BoundingBoxDisabler(boundingBox)
                                                           , SpatialMappingObserverStarter
-                                                          , MeasureMover);
+                                                          , MeasureMover(measure));
             HandleStateTransition(stateTransition);
         }
 
@@ -77,20 +94,24 @@ namespace MovingSofaProblem
         {
             var stateTransition = StoppedFollowing.StopFollowing(currentGameState
                                                                 , Camera.main.transform
-                                                                , MeasureReleaser(this)
+                                                                , MeasureReleaser(this, measure)
                                                                 , SpatialMappingObserverStopper);
             HandleStateTransition(stateTransition);
         }
 
         public void BreakFall_MeasureHasLanded(object source, EventArgs args)
         {
-            var stateTransition = PathSimplified.SimplifyPath(currentGameState);
+            var stateTransition = PathSimplified.SimplifyPath(
+                currentGameState,
+                new PositionAndRotation(measure.transform.position, measure.transform.rotation),
+                pathHolder => pathHolder // TODO Use a real solution finder
+            );
             HandleStateTransition(stateTransition);
         }
 
         public void StartReplaying()
         {
-            var stateTransition = WaitingToReplay.StartReplaying(currentGameState);
+            var stateTransition = WaitingToReplay.StartReplaying(currentGameState, MeasureMover(measure));
             HandleStateTransition(stateTransition);
         }
 
@@ -112,7 +133,7 @@ namespace MovingSofaProblem
             HandleSideEffects(sideEffects);
         }
 
-        #region SIDE EFFECTS
+#region SIDE EFFECTS
 
         private void HandleStateTransition(StateTransition stateTransition)
         {
@@ -134,41 +155,41 @@ namespace MovingSofaProblem
             return status => textToSpeechManager.SpeakText(status);
         }
 
-        private static Func<GameObject, Func<GameObject, PositionAndRotation, GameObject>> MeasureCreator =
-            measurePrefab =>
-                (measure, newPositionAndRotation) =>
+        private static Func<GameObject, GameObject, Action<PositionAndRotation>> MeasureCreator =
+            (prefab, currentMeasure) =>
+                newPositionAndRotation =>
                     {
-                        if (measure != null)
+                        if (currentMeasure != null)
                         {
-                            Destroy(measure);
+                            Destroy(currentMeasure);
                         }
-                        measure = Instantiate(measurePrefab, newPositionAndRotation.Position, newPositionAndRotation.Rotation);
-                        return measure;
+                        currentMeasure = Instantiate(prefab, newPositionAndRotation.Position, newPositionAndRotation.Rotation);
                     };
 
-        private static Func<GameObject, PositionAndRotation, PositionAndRotation> MeasureMover =
-            (measure, newPositionAndRotation) =>
-                {
-                    measure.transform.position = newPositionAndRotation.Position;
-                    measure.transform.rotation = newPositionAndRotation.Rotation;
-                    return newPositionAndRotation;
-                };
+        private static Func<GameObject, Action<PositionAndRotation>> MeasureMover =
+            measure =>
+                newPositionAndRotation =>
+                    {
+                        measure.transform.position = newPositionAndRotation.Position;
+                        measure.transform.rotation = newPositionAndRotation.Rotation;
+                    };
 
         private static Func<BoundingBox, Action> BoundingBoxDisabler = box => () => box.Target = null;
 
-        private static Func<MovingSofaGameController, Action<GameObject>> MeasureReleaser = controller => 
-            measure =>
-                {
-                    BreakFall breakFall = measure.AddComponent<BreakFall>();
-                    breakFall.MeasureHasLanded += controller.BreakFall_MeasureHasLanded;
-                    Rigidbody measureRigidBody = measure.AddComponent<Rigidbody>();
-                    measureRigidBody.mass = 20;
-                    measureRigidBody.useGravity = true;
-                };
+        private static Func<MovingSofaGameController, GameObject, Action> MeasureReleaser = 
+            (controller, currentMeasure) =>
+                () =>
+                    {
+                        BreakFall breakFall = currentMeasure.AddComponent<BreakFall>();
+                        breakFall.MeasureHasLanded += controller.BreakFall_MeasureHasLanded;
+                        Rigidbody measureRigidBody = currentMeasure.AddComponent<Rigidbody>();
+                        measureRigidBody.mass = 20;
+                        measureRigidBody.useGravity = true;
+                    };
 
         private static Action SpatialMappingObserverStarter = () => SpatialMappingManager.Instance.StartObserver();
 
         private static Action SpatialMappingObserverStopper = () => SpatialMappingManager.Instance.StopObserver();
-        #endregion
+#endregion
     }
 }
