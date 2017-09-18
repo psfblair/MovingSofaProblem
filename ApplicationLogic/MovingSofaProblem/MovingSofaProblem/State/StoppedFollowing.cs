@@ -16,15 +16,13 @@ namespace MovingSofaProblem.State
         override public string SayableStatus { get { return "I have stopped following you and am simplifying the route."; } }
 
 		private StoppedFollowing(GameState priorState
-							   , PositionAndRotation currentPositionAndRotation
 							   , Situation cameraSituation) : base(GameMode.StoppedFollowing, priorState)
         {
             // Make sure we get the last spot before we stop following.
-            priorState.InitialPath.Add(currentPositionAndRotation, cameraSituation.position.y);
+            priorState.InitialPath.Add(priorState.MeasureLocation, cameraSituation.position.y);
         }
 
         public static StateTransition StopFollowing(GameState currentState
-                                                   , PositionAndRotation currentPositionAndRotation 
                                                    , Situation cameraSituation
                                                    , Action measureReleaser
                                                    , Action spatialMappingObserverStopper)
@@ -35,7 +33,7 @@ namespace MovingSofaProblem.State
                 return new StateTransition(currentState, errorSideEffects);
             }
 
-            var newState = new StoppedFollowing(currentState, currentPositionAndRotation, cameraSituation);
+            var newState = new StoppedFollowing(currentState, cameraSituation);
 
             Func<GameState, GameState> putDownMeasure =
                 state => { measureReleaser(); return state; };

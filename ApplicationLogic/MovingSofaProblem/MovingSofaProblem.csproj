@@ -5,11 +5,11 @@
     <OutputType>Library</OutputType>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <ProjectGuid>{E8F2A8F8-615A-443C-96C6-B6C18B5B53FC}</ProjectGuid>
     <Description>Module to handle state machine for MovingSofaProblem.</Description>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>pdbonly</DebugType>
     <Optimize>false</Optimize>
@@ -20,6 +20,7 @@
     <DefineConstants>UNIT_TESTS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -28,6 +29,7 @@
     <DefineConstants>UNIT_TESTS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release Single Project|AnyCPU' ">
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <DebugType></DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\Assets\Plugins</OutputPath>

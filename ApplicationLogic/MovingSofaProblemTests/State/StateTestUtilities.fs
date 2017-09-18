@@ -112,10 +112,10 @@ module StateTestUtilities =
 
     let stoppedFollowingState () =
         let (beforeState, spokenStateRef) = followingState ()
+        beforeState.MeasureLocation <- measureWhenStoppedFollowing
         let afterState =
             StoppedFollowing.StopFollowing(
                 beforeState
-                , measureWhenStoppedFollowing
                 , cameraAtOrigin
                 , fun gameObject -> ()
                 , fun state -> state

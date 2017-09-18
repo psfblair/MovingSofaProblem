@@ -124,7 +124,7 @@ namespace MovingSofaProblem.Path
 
 		public override string ToString()
 		{
-            var itemStrings = path.Select(item => item.ToString());
+            var itemStrings = path.Select(item => item.ToString()).ToArray();
             return "Path: { " + String.Join(" ,\n\t", itemStrings) + " }\n";
 		}
 

@@ -15,7 +15,7 @@ namespace MovingSofaProblem.State
             this.PathToReplay = simplifiedPath;
         }
 
-		internal static StateTransition SimplifyPath(GameState priorState
+		public static StateTransition SimplifyPath(GameState priorState
                                                     , PositionAndRotation positionAndRotationAfterDropped
                                                     , Func<PathHolder, PathHolder> solutionFinder)
         {

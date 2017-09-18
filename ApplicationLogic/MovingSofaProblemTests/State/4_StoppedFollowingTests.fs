@@ -10,19 +10,19 @@ open Domain
 
 module StoppedFollowingTests =
 
-    let stopFollowingFrom state =
+    let stopFollowingFrom (state:GameState) =
+        state.MeasureLocation <- StateTestUtilities.measureWhenStoppedFollowing
         StoppedFollowing.StopFollowing(
               state
-            , StateTestUtilities.measureWhenStoppedFollowing
             , StateTestUtilities.cameraAtOrigin
             , fun gameObject -> ()
             , fun state -> state
         )
 
-    let stopFollowingAt state x y z =
+    let stopFollowingAt (state:GameState) x y z =
+        state.MeasureLocation <- StateTestUtilities.facingRotWithPosXYZ x y z
         StoppedFollowing.StopFollowing(
               state
-            , StateTestUtilities.facingRotWithPosXYZ x y z
             , StateTestUtilities.cameraAtOrigin
             , fun gameObject -> ()
             , fun state -> state
@@ -69,11 +69,11 @@ module StoppedFollowingTests =
     [<Test>]
     let ``Releases the measure in the first side effect``() = 
         let (beforeState, spokenStateRef) = StateTestUtilities.followingState ()
+        beforeState.MeasureLocation <- StateTestUtilities.measureWhenStoppedFollowing
         let mutable measureReleased = false  
         let stateTransition = 
             StoppedFollowing.StopFollowing(
                   beforeState
-                , StateTestUtilities.measureWhenStoppedFollowing
                 , StateTestUtilities.cameraAtOrigin
                 , fun gameObject -> measureReleased <- true; ()
                 , fun state -> state
@@ -103,11 +103,11 @@ module StoppedFollowingTests =
     [<Test>]
     let ``Stops the spatial mapping observer in the third side effect``() = 
         let (beforeState, spokenStateRef) = StateTestUtilities.followingState ()
+        beforeState.MeasureLocation <- StateTestUtilities.measureWhenStoppedFollowing
         let mutable spatialMappingObserverStopped = false  
         let stateTransition = 
             StoppedFollowing.StopFollowing(
                   beforeState
-                , StateTestUtilities.measureWhenStoppedFollowing
                 , StateTestUtilities.cameraAtOrigin
                 , fun gameObject -> ()
                 , fun state -> spatialMappingObserverStopped <- true; state
