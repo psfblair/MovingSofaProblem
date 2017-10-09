@@ -149,7 +149,7 @@ module FollowingTests =
         let fourthSideEffect = stateTransition.SideEffects |> List.ofSeq |> List.item 3
         fourthSideEffect.Invoke(stateTransition.NewState) |> ignore
 
-        test <@ !spokenStateRef = "I'm following you. Go to where you want to move the object. " + 
+        test <@ !spokenStateRef = "I'm with you. Go to where you want to move the object. " + 
                 "Say 'Put it down' when you have arrived at the place where you want to move the object." @>
 
     [<Test>]

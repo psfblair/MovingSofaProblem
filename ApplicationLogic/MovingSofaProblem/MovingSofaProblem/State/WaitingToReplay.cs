@@ -6,7 +6,7 @@ namespace MovingSofaProblem.State
 {
     public sealed class WaitingToReplay : GameState
     {
-        private string whatYouCanSayNow = "Say 'Next' to replay the next step.";
+        private string whatYouCanSayNow = "Say 'Next step' to replay the next step.";
         override public string SayableStateDescription { get { return "Replaying the solution. " + whatYouCanSayNow; } }
         override public string SayableStatus { get { return "I am ready to replay the solution. You can " + whatYouCanSayNow; } }
 

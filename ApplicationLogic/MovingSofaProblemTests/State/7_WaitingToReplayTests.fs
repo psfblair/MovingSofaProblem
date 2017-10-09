@@ -70,7 +70,7 @@ module WaitingToReplayTests =
         let stateAfterSideEffect = sideEffect.Invoke(newState)
         test <@ stateAfterSideEffect.Mode = GameMode.WaitingToReplay @>
 
-        test <@ !spokenStateRef = "Replaying the solution. Say 'Next' to replay the next step." @>
+        test <@ !spokenStateRef = "Replaying the solution. Say 'Next step' to replay the next step." @>
 
     [<Test>]
     let ``Can tell you what state you are in``() = 
@@ -78,7 +78,7 @@ module WaitingToReplayTests =
         let waitingToReplayState = 
             WaitingToReplay.StartReplaying(solutionFoundState, StateTestUtilities.measurePositioner).NewState
 
-        let expectedSpokenState = "Right now I am ready to replay the solution. You can Say 'Next' to replay the next step."
+        let expectedSpokenState = "Right now I am ready to replay the solution. You can Say 'Next step' to replay the next step."
         GameState.SayStatus(waitingToReplayState) 
             |> StateTestUtilities.testSingleSideEffectSpeaks expectedSpokenState spokenStateRef waitingToReplayState
 

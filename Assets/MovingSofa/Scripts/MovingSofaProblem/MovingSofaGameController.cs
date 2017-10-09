@@ -20,21 +20,21 @@ namespace MovingSofaProblem
 
         private GameObject measure;
 		private BoundingBox boundingBox;
-        private TextToSpeechManager textToSpeechManager;
+        private TextToSpeech textToSpeech;
 
         private GameState currentGameState;
 
         void Start()
         {
             boundingBox = FindObjectOfType<BoundingBox>();
-            textToSpeechManager = FindObjectOfType<TextToSpeechManager>();
+            textToSpeech = FindObjectOfType<TextToSpeech>();
 
 			var stateTransition = Starting.Start(
                 Camera.main.transform,
                 carryPositionRelativeToCamera,
                 replayingTranslationSpeed,
                 replayingRotationSpeed,
-                StatusSpeaker(textToSpeechManager)
+                StatusSpeaker(textToSpeech)
             );
             HandleStateTransition(stateTransition);
         }
@@ -150,9 +150,9 @@ namespace MovingSofaProblem
             }
         }
 
-        private static Action<string> StatusSpeaker(TextToSpeechManager textToSpeechManager)
+        private static Action<string> StatusSpeaker(TextToSpeech textToSpeech)
         {
-            return status => textToSpeechManager.SpeakText(status);
+            return status => textToSpeech.StartSpeaking(status);
         }
 
         private static Func<GameObject, GameObject, Action<PositionAndRotation>> MeasureCreator =

@@ -14,18 +14,28 @@ Before opening this project in Unity:
       but it still needs to be reinitialized in your project on your first
       checkout by running the following command in the Assets folder:
 
-      `git submodule add https://github.com/Microsoft/MRDesignLabs_Unity_Tools.git ./MRDesignLabsUnityTools`
+      `git submodule add https://github.com/Microsoft/MRDesignLabs_Unity_Tools.git ./MRDesignLab`
 
+      This will add HUX and related tools under Assets/MRDesignLabsUnityTools/ folder.
+
+      To update the submodule you'll still need to pull from master by either going into the individual 
+      submodule directory and doing a `git pull` or by doing the following command to do pulls on 
+      all submodules:
+
+     `git submodule foreach git pull`
+     
       If you need to make tweaks for something that is broken in the MR Design
       Tools, I suggest doing the following (and submitting a pull request):
 
 ```bash
-      cd Assets/MRDesignLabsUnityTools
+      cd Assets/MRDesignLab
       git checkout -b minor_tweaks
 ```
 
-  3. HoloToolkit 1.5.7.0 is already in this repository, so you shouldn't need
-      to import it.
+  3. The HoloToolkit is already in this repository, so you shouldn't need to import it.
 
   4. Create a folder named Assets/SampleRoom and a sample room mesh named
       SampleSpatialMapping.obj to it, if you want a sample room.
+
+  5. If you're working on macOS, the build settings should be PC, Mac and Linux standalone
+     with a Windows build.

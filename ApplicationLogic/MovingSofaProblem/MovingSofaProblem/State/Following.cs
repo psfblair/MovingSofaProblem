@@ -15,7 +15,7 @@ namespace MovingSofaProblem.State
     public sealed class Following : GameState
     {
         private string whatYouCanSayNow = "Say 'Put it down' when you have arrived at the place where you want to move the object.";
-        override public string SayableStateDescription { get { return "I'm following you. Go to where you want to move the object. " + whatYouCanSayNow; } }
+        override public string SayableStateDescription { get { return "I'm with you. Go to where you want to move the object. " + whatYouCanSayNow; } }
         override public string SayableStatus { get { return "I am following you. You can " + whatYouCanSayNow; } }
 
         private Following(GameState priorState

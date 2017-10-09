@@ -221,7 +221,7 @@ module ReplayingTests =
 
         let expectedSpokenState = 
             "Right now I am in the middle of replaying the solution. " + 
-            "You can Say 'Next' to replay the next step, 'Again' to replay " + 
+            "You can Say 'Next step' to replay the next step, 'Again' to replay " + 
             "the current step, or 'Replay solution' to start over from the beginning."
 
         GameState.SayStatus(replayingState) 
