@@ -8,43 +8,56 @@ Here is how things are set up in Unity:
   a) Add the HoloLens prefab from HUX/Prefabs/Interface/HoloLens
   b) Under it, on the InteractionManager, select only Tap, Hold, Manipulation Translate
   c) ManipulationManager should already have the BoundingBoxShell and AppBar
-    *) We make our own copy of the BoundingBoxShell and AppBar and put them in prefabs
-    *) Our AppBar should just have the Adjust/Done button
+    *) We make our own copy of the BoundingBoxShell and put it in prefabs
     *) Our BoundingBoxShell should have 0 scale padding, and for permitted
        operations select Drag, RotateY, ScaleX, ScaleY, ScaleZ
+       Do not flatten
+       Accept input
+       Manipulating now
+    *) We'll try it without an app bar.
+
+/*  
+  c) ManipulationManager should already have the BoundingBoxShell and AppBar
+    *) We make our own copy of the BoundingBoxShell and AppBar and put them in prefabs
+    *) Our AppBar should just have the Adjust/Done button (if we use)
+    *) Our BoundingBoxShell should have 0 scale padding, and for permitted
+       operations select Drag, RotateY, ScaleX, ScaleY, ScaleZ
+*/
+       
+3) Measure prefab:
+    a) Basic cube mesh filter, stretched in the x direction (scale: 0.3, 0.1, 0.1)
+    b) Box collider (not trigger), mesh renderer
+    c) CompoundButton script. Filter tag is "Hidden" (need to make this tag).
+      Make button state Interactive and require Gaze
+      No need for main collider or main renderer?
+    d) BoundingBoxTarget script
+      Tag on selected: Hidden, Tag on deselected: Default
+      Permitted operations: Drag, ScaleUniform, RotateY (Hopefully we can get Scale X,Y,Z)
+      Try unselecting Toolbar Display
+      Flattening mode: Do not flatten
 
 3) Speech input:
-  a) Remove the default KeywordRecognizer from the AudioManager under HoloLens
-  b) Add a KeywordRecognizer that autostarts with the keyword triggers (and map them to the GameController):
-      Measure object
-      Come with me
-      Put it down
-      Replay solution
-      What are you doing
-      Next
-      Again
+  a) Under the KeywordManager on the AudioManager under HoloLens add a "SpeechReciever":
+    *) Set up the following keyword triggers and map them to the GameController:
+        Measure object        M
+        Come with me          C
+        Put it down           P
+        Replay solution       R
+        Next step             N
+        Again                 A
+        What are you doing    ?
 
 4) Text to speech:
     a) Create an AudioSource on an empty GameObject that is a child of CameraRig and
       position it approximately 0.6 units above the camera. This orientation will sound
       similar to Cortana's speech in the OS. It should have "Play on Awake"
       and the Spatial Blend should be all the way over to 3D
-   b) Add a TextToSpeechManager component anywhere in your scene and link (drag and drop)
+   b) Add the TextToSpeech script to the same object and link (drag and drop)
       the audio source you created in the last step to link it with the manager.
-      Make sure you initialize the TextToSpeechManager textToSpeech = GetComponent...
+      In your code, make sure you initialize the TextToSpeech textToSpeech = GetComponent...
       some milliseconds before you use it to speak.
 
-5) Measure prefab:
-    a) Basic cube mesh filter, stretched in the x direction (scale: 0.3, 0.1, 0.1)
-    b) Box collider (not trigger), mesh renderer
-    c) CompoundButton script. Filter tag is "Hidden" (need to make this tag).
-      Make button state Interactive and require Gaze?
-      No need for collider or renderer?
-    d) BoundingBoxTarget script
-      Tag on selected: Hidden, Tag on deselected: Default
-      Permitted operations: Drag, ScaleUniform, RotateY (Hopefully we can get Scale X,Y,Z)
-
 6) SpatialMapping:
-    a) Add SpatialMapping (say, under HoloLens)
+    a) Add SpatialMapping prefab (say, under HoloLens)
     b) Add the sample room mesh under Assets/SampleRoom/SampleSpatialMapping to
           the SpatialMapping's ObjectSurfaceObserver RoomModel script
